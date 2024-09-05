@@ -1,17 +1,22 @@
 import json
-from config import http
-import asyncio
-import config_generator
-import urllib
+from config import http, endpoints
 import random, uuid
 from string import ascii_letters, digits
 
+
+
 ascii_letdigest = ascii_letters + digits
 
-async def login(endpoints, data):
-    r = await http(method="POST", url=endpoints["base_path"] + endpoints["login"] , data=data, cookie=True)
-    session_cookie = r.get("3x-ui")
-    print(r.get("3x-ui"))
+async def login(username, password): # DONE
+
+    auth_data = {
+        'username': username,
+        'password': password
+    }
+
+    r = await http(method="POST", url=endpoints["base_path"] + endpoints["login"] , data=auth_data)
+    session_cookie = r.cookies.get("3x-ui")
+
     if session_cookie:
         print(f"Login successful, session cookie: {session_cookie}")
 
@@ -23,6 +28,8 @@ async def login(endpoints, data):
         return None
     else:
         return headers
+
+
 
 async def get_list(endpoints, data):
     headers = await login(endpoints, data)
@@ -90,71 +97,22 @@ async def add_inbound_data(
     endpoints: dict, headers: str
 ):
     data = {
-        "up": up,
-        "down": down,
-        "total": total,
         "remark": remark,
         "enable": enable,
-        "expiryTime": expiry_time,
-        "listen": listen,
+        "expiryTime": 0,
+        "listen": "",
         "port": port,
-        "protocol": protocol,
-        "settings": {
-            "clients": [
-                {
-                    "id": client_id,
-                    "flow": "",
-                    "email": email,
-                    "limitIp": limit_ip,
-                    "totalGB": total_gb,
-                    "expiryTime": client_expiry_time,
-                    "enable": enable,
-                    "tgId": tg_id,
-                    "subId": sub_id,
-                    "reset": reset
-                }
-            ],
-            "decryption": "none",
-            "fallbacks": []
-        },
-        "streamSettings": {
-            "network": network,
-            "security": security,
-            "externalProxy": [],
-            "realitySettings": {
-                "show": False,
-                "xver": 0,
-                "dest": dest,
-                "serverNames": server_names,
-                "privateKey": private_key,
-                "minClient": "",
-                "maxClient": "",
-                "maxTimediff": 0,
-                "shortIds": short_ids,
-                "settings": {
-                    "publicKey": public_key,
-                    "fingerprint": fingerprint,
-                    "serverName": "",
-                    "spiderX": spider_x
-                }
-            },
-            "tcpSettings": {
-                "acceptProxyProtocol": False,
-                "header": {
-                    "type": "none"
-                }
-            }
-        },
-        "sniffing": {
-            "enabled": False,
-            "destOverride": ["http", "tls", "quic", "fakedns"],
-            "metadataOnly": False,
-            "routeOnly": False
-        }
+        "protocol": protocol
+
+    # я тут убрал остальное, добавь сам 
+    
+
     }
     
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data, headers=headers)
-    print(r)
+
+
+    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], json=data, headers=headers)
+    print(r.text)
     
 # async def split_uuid_to_short_ids(uuid_str):
 #     clean_uuid = uuid_str.replace("-", "")
@@ -171,8 +129,7 @@ async def add_inbound_data(
     
 #     return short_ids
 
-async def add_inbound(endpoints, data):
-    headers = await login(endpoints, data)
+async def add_inbound(auth_headers):
     up = 0
     down = 0
     total = 0
@@ -180,6 +137,7 @@ async def add_inbound(endpoints, data):
     enable = True
     expiryTime = 0
     listen = ""
+    settings = ""
     port = random.randint(1000, 65535)
     protocol = "vless"
     client_id = str(uuid.uuid4())
@@ -187,7 +145,6 @@ async def add_inbound(endpoints, data):
     limit_ip = 0
     total_gb = 0
     client_expiry_time = 0
-    enable = "true"
     tg_id = ""
     sub_id = str()
     reset = 0
@@ -223,7 +180,7 @@ async def add_inbound(endpoints, data):
         public_key += ascii_letdigest[random.randint(1, 60)]
 
     spider_x = "/"
-    return await add_inbound_data(up, down, total, remark, enable, expiryTime, listen, port, protocol, client_id, email, limit_ip, total_gb, client_expiry_time, tg_id, sub_id, reset, network, security, dest, server_names, private_key, short_ids, public_key, fingerprint, spider_x, endpoints, headers)
+    return await add_inbound_data(up, down, total, remark, enable, expiryTime, listen, port, protocol, client_id, email, limit_ip, total_gb, client_expiry_time, tg_id, sub_id, reset, network, security, dest, server_names, private_key, short_ids, public_key, fingerprint, spider_x, endpoints, headers=auth_headers)
 
 
 
