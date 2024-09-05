@@ -1,0 +1,64 @@
+services:
+
+  # api:
+  #   hostname: api
+  #   build: 
+  #     context: ./api
+  #     args:
+  #       FASTAPI_KEY: ${FASTAPI_KEY}
+  #       FASTAPI_DEBUG: ${FASTAPI_DEBUG}
+  #       PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
+  #   container_name: api
+  #   restart: always
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - psql
+  #   networks:
+  #     sorm_network:
+  #       ipv4_address: 172.70.70.3
+
+  # logic:
+  #   hostname: main
+  #   build:
+  #     context: ./main
+  #     args:
+  #       FASTAPI_KEY: ${FASTAPI_KEY}
+  #       PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
+  #   container_name: main
+  #   restart: on-failure
+  #   depends_on:
+  #     - psql
+  #   networks:
+  #     sorm_network:
+  #       ipv4_address: 172.70.70.4
+
+  
+  psql:
+    hostname: psql
+    image: postgres:14
+    container_name: psql
+    restart: on-failure
+    volumes:
+      - psql:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: Europe/Moscow
+    networks:
+      sorm_network:
+        ipv4_address: 172.72.72.2
+
+volumes:
+  psql:
+
+networks:
+  sorm_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.72.72.0/24
+          gateway: 172.72.72.1
