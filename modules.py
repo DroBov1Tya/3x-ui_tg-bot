@@ -163,6 +163,9 @@ async def add_inbound_data(inbound_data):
 
 
 async def add_inbound(auth_headers):
+    r = await http(method="POST", url = endpoints["base_path"] + endpoints["keygen"], headers=auth_headers)
+    keys = r.json()['obj']
+
     up = 0
     down = 0
     total = 0
@@ -187,7 +190,7 @@ async def add_inbound(auth_headers):
     "yahoo.com",
     "www.yahoo.com"
     ],
-    private_key = str()
+    private_key = keys["privateKey"]
     short_ids = [
     "12",
     "73a21a72b0",
@@ -198,7 +201,7 @@ async def add_inbound(auth_headers):
     "df114f8d28ce94d2",
     "1bcad2b1873a"
     ]
-    public_key = str()
+    public_key = keys["publicKey"]
     fingerprint = "random"
     spider_x = "/"
 
@@ -207,9 +210,6 @@ async def add_inbound(auth_headers):
         pass
     for i in range(1, 17):
         sub_id += ascii_letdigest[random.randint(1, 60)]
-    for i in range(1, 44):
-        private_key += ascii_letdigest[random.randint(1, 60)]
-        public_key += ascii_letdigest[random.randint(1, 60)]
 
     inbound_data = {
         "endpoints" : endpoints,

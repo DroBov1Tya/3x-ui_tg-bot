@@ -40,5 +40,6 @@ endpoints = {
     "delete_client" :               "/panel/api/inbounds/{inboundId}/delClient/{uuid}",
     "delete_depleted_dlients" :     "/panel/api/inbounds/delDepletedClients/{inboundId}",
     "online_clients" :              "/panel/api/inbounds/onlines",
-    "export_database" :             "/panel/api/inbounds/createbackup"
+    "export_database" :             "/panel/api/inbounds/createbackup",
+    "keygen" :                      "/server/getNewX25519Cert"
     }
