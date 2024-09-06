@@ -23,7 +23,7 @@ async def http(url: str, method: str = "GET", headers = None, data = None, json 
 
 
 endpoints = {
-    "base_path" :                   "http://185.234.13.205:2053/4fGKZs4G0c",
+    "base_path" :                   "http://191.96.235.118:2053/HobpJjcpos",
     "login" :                       "/login",
     "list" :                        "/panel/api/inbounds/list",
     "get_inbound" :                 "/panel/api/inbounds/get/",
@@ -36,7 +36,7 @@ endpoints = {
     "reset_client_ip" :             "/panel/api/inbounds/clearClientIps/{email}",
     "reset_inbounds_stat" :         "/panel/api/inbounds/resetAllTraffics",
     "reset_inbound_clients_stat" :  "/panel/api/inbounds/resetAllClientTraffics/{inboundId}",
-    "delete_inbound" :              "/panel/api/inbounds/del/{inboundId}",
+    "delete_inbound" :              "/panel/api/inbounds/del/",
     "delete_client" :               "/panel/api/inbounds/{inboundId}/delClient/{uuid}",
     "delete_depleted_dlients" :     "/panel/api/inbounds/delDepletedClients/{inboundId}",
     "online_clients" :              "/panel/api/inbounds/onlines",

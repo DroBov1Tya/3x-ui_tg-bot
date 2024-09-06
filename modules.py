@@ -18,7 +18,7 @@ async def login(username, password): # DONE
     session_cookie = r.cookies.get("3x-ui")
 
     if session_cookie:
-        print(f"Login successful, session cookie: {session_cookie}")
+        print(f"Login successful")
 
     headers = {
             "Accept": "application/json",
@@ -31,20 +31,22 @@ async def login(username, password): # DONE
 
 
 
-async def get_list(endpoints, data):
-    headers = await login(endpoints, data)
-    r = await http(url = endpoints["base_path"] + endpoints["list"], headers=headers)
-    remarks = r["obj"]
+async def get_list(auth_headers):
+    r = await http(url = endpoints["base_path"] + endpoints["list"], headers=auth_headers)
+    remarks = r.json()["obj"]
     counter = 0
     for id in remarks:
         counter += 1
         print(f"[{counter}]{id['remark']}")
 
-async def get_inbound(endpoints, data):
-    headers = await login(endpoints, data)
-    r = await http(url = endpoints["base_path"] + endpoints["get_inbound"] + "1", headers=headers)
-    remarks = r["obj"]
+async def get_inbound(auth_headers):
+    r = await http(url = endpoints["base_path"] + endpoints["get_inbound"] + "1", headers=auth_headers)
+    remarks = r.json()["obj"]
     print(remarks)
+
+async def delete_inbound(auth_headers):
+    r = await http(url = endpoints["base_path"] + endpoints["delete_inbound"] + "/1", headers=auth_headers)
+    print(r)
 
 async def add_client(
         inbound_id: int,
@@ -88,46 +90,77 @@ async def add_client(
     print(r)
     return 
 
-async def add_inbound_data(
-    up: int, down: int, total: int, remark: str, enable: bool, expiry_time: int, 
-    listen: str, port: int, protocol: str, client_id: str, email: str, 
-    limit_ip: int, total_gb: int, client_expiry_time: int, tg_id: str, sub_id: str, 
-    reset: int, network: str, security: str, dest: str, server_names: list, 
-    private_key: str, short_ids: list, public_key: str, fingerprint: str, spider_x: str, 
-    endpoints: dict, headers: str
-):
+async def add_inbound_data(inbound_data):
     data = {
-        "remark": remark,
-        "enable": enable,
-        "expiryTime": 0,
-        "listen": "",
-        "port": port,
-        "protocol": protocol
-
-    # я тут убрал остальное, добавь сам 
-    
-
+        "up": inbound_data["up"],
+        "down": inbound_data["down"],
+        "total": inbound_data["total"],
+        "remark": inbound_data["remark"],
+        "enable": inbound_data["enable"],
+        "expiryTime": inbound_data["expiryTime"],
+        "listen": inbound_data["listen"],
+        "port": inbound_data["port"],
+        "protocol": inbound_data["protocol"],
+        "settings": {
+            "clients": [
+                {
+                    "id": inbound_data["client_id"],
+                    "flow": "",
+                    "email": inbound_data["email"],
+                    "limitIp": inbound_data["limit_ip"],
+                    "totalGB": inbound_data["total_gb"],
+                    "expiryTime": inbound_data["client_expiry_time"],
+                    "enable": inbound_data["enable"],
+                    "tgId": inbound_data["tg_id"],
+                    "subId": inbound_data["sub_id"],
+                    "reset": inbound_data["reset"]
+                }
+            ],
+            "decryption": "none",
+            "fallbacks": []
+        },
+        "streamSettings": {
+            "network": inbound_data["network"],
+            "security": inbound_data["security"],
+            "externalProxy": [],
+            "realitySettings": {
+                "show": False,
+                "xver": 0,
+                "dest": inbound_data["dest"],
+                "serverNames": inbound_data["server_names"],
+                "privateKey": inbound_data["private_key"],
+                "minClient": "",
+                "maxClient": "",
+                "maxTimediff": 0,
+                "shortIds": inbound_data["short_ids"],
+                "settings": {
+                    "publicKey": inbound_data["public_key"],
+                    "fingerprint": inbound_data["fingerprint"],
+                    "serverName": "",
+                    "spiderX": inbound_data["spider_x"]
+                }
+            },
+            "tcpSettings": {
+                "acceptProxyProtocol": False,
+                "header": {
+                    "type": "none"
+                }
+            }
+        },
+        "sniffing": {
+            "enabled": False,
+            "destOverride": ["http", "tls", "quic", "fakedns"],
+            "metadataOnly": False,
+            "routeOnly": False
+        }
     }
     
+    endpoints = inbound_data["endpoints"]
+    auth_headers = inbound_data["auth_headers"]
 
+    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], json=data, headers=auth_headers)
+    print(r)
 
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], json=data, headers=headers)
-    print(r.text)
-    
-# async def split_uuid_to_short_ids(uuid_str):
-#     clean_uuid = uuid_str.replace("-", "")
-#     short_ids = [
-#         clean_uuid[:16],     # Первая часть из 16 символов
-#         clean_uuid[16:30],   # Вторая часть из 14 символов
-#         clean_uuid[30:43],   # Третья часть из 13 символов
-#         clean_uuid[43:53],   # Четвертая часть из 10 символов
-#         clean_uuid[53:57],   # Пятая часть из 4 символов
-#         clean_uuid[57:59],   # Шестая часть из 2 символов
-#         clean_uuid[59:67],   # Седьмая часть из 8 символов
-#         clean_uuid[67:75]    # Восьмая часть из 8 символов
-#     ]
-    
-#     return short_ids
 
 async def add_inbound(auth_headers):
     up = 0
@@ -137,7 +170,6 @@ async def add_inbound(auth_headers):
     enable = True
     expiryTime = 0
     listen = ""
-    settings = ""
     port = random.randint(1000, 65535)
     protocol = "vless"
     client_id = str(uuid.uuid4())
@@ -179,8 +211,38 @@ async def add_inbound(auth_headers):
         private_key += ascii_letdigest[random.randint(1, 60)]
         public_key += ascii_letdigest[random.randint(1, 60)]
 
-    spider_x = "/"
-    return await add_inbound_data(up, down, total, remark, enable, expiryTime, listen, port, protocol, client_id, email, limit_ip, total_gb, client_expiry_time, tg_id, sub_id, reset, network, security, dest, server_names, private_key, short_ids, public_key, fingerprint, spider_x, endpoints, headers=auth_headers)
+    inbound_data = {
+        "endpoints" : endpoints,
+        "auth_headers" : auth_headers,
+        "up" : up,
+        "down" : down,
+        "total" : total,
+        "remark" : remark,
+        "enable" : enable,
+        "expiryTime" : expiryTime,
+        "listen" : listen,
+        "port" : port,
+        "protocol" : protocol,
+        "client_id" : client_id,
+        "email" : email,
+        "limit_ip" : limit_ip,
+        "total_gb" : total_gb,
+        "client_expiry_time" : client_expiry_time,
+        "tg_id" : tg_id,
+        "sub_id" : sub_id,
+        "reset" : reset,
+        "network" : network,
+        "security" : security,
+        "dest" : dest,
+        "server_names" : server_names,
+        "private_key" : private_key,
+        "short_ids" : short_ids,
+        "public_key" : public_key,
+        "fingerprint" : fingerprint,
+        "spider_x" : spider_x,
+    }
+
+    return await add_inbound_data(inbound_data)
 
 
 
