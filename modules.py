@@ -22,6 +22,7 @@ async def login(username, password): # DONE
 
     headers = {
             "Accept": "application/json",
+            "Content-Type": "application/json",
             "Cookie": f"3x-ui={session_cookie}"  # Добавляем куку в заголовки запроса
         }
     if r is None:
@@ -158,8 +159,22 @@ async def add_inbound_data(inbound_data):
     endpoints = inbound_data["endpoints"]
     auth_headers = inbound_data["auth_headers"]
 
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], json=data, headers=auth_headers)
-    print(r)
+
+    data2 = json.dumps({
+        "enable": True,
+        "remark": "New inbound",
+        "listen": "",
+        "port": 48965,
+        "protocol": "vmess",
+        "expiryTime": 0,
+        "settings": "{\"clients\":[],\"decryption\":\"none\",\"fallbacks\":[]}",
+        "streamSettings": "{\"network\":\"ws\",\"security\":\"none\",\"wsSettings\":{\"acceptProxyProtocol\":false,\"path\":\"/\",\"headers\":{}}}",
+        "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\"]}"
+        })
+
+
+    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data2, headers=auth_headers)
+    print(r.text)
 
 
 async def add_inbound(auth_headers):
