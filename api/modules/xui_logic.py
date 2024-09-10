@@ -1,14 +1,15 @@
 import json
 from config import http, endpoints
 import random, uuid
+import pyqrcode
 from string import ascii_letters, digits
 
 
 
 ascii_letdigest = ascii_letters + digits
 
-async def login(username, password): # DONE
-
+#|=============================[Login]=============================|
+async def login(username, password): 
     auth_data = {
         'username': username,
         'password': password
@@ -29,9 +30,9 @@ async def login(username, password): # DONE
         return None
     else:
         return headers
+#--------------------------------------------------------------------------
 
-
-
+#|=============================[Get List]=============================|
 async def get_list(auth_headers):
     r = await http(url = endpoints["base_path"] + endpoints["list"], headers=auth_headers)
     remarks = r.json()["obj"]
@@ -39,16 +40,22 @@ async def get_list(auth_headers):
     for id in remarks:
         counter += 1
         print(f"[{counter}]{id['remark']}")
+#--------------------------------------------------------------------------
 
+#|=============================[Get Inbound]=============================|
 async def get_inbound(auth_headers):
     r = await http(url = endpoints["base_path"] + endpoints["get_inbound"] + "1", headers=auth_headers)
     remarks = r.json()["obj"]
     print(remarks)
+#--------------------------------------------------------------------------
 
+#|=============================[Delete Inbound]=============================|
 async def delete_inbound(auth_headers):
     r = await http(url = endpoints["base_path"] + endpoints["delete_inbound"] + "/1", headers=auth_headers)
     print(r)
+#--------------------------------------------------------------------------
 
+#|=============================[Add Client]=============================|
 async def add_client(
         inbound_id: int,
         email: str,
@@ -90,7 +97,9 @@ async def add_client(
     r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_client"], headers=headers, data=params)
     print(r)
     return 
+#--------------------------------------------------------------------------
 
+#|=============================[Add Inbound Request]=============================|
 async def add_inbound_data(inbound_data):
     settings = json.dumps({
     "clients": [
@@ -164,38 +173,11 @@ async def add_inbound_data(inbound_data):
     endpoints = inbound_data["endpoints"]
     auth_headers = inbound_data["auth_headers"]
 
-    config_variables = {
-    "id" : inbound_data["client_id"],
-    "ip" : "191.96.235.118",
-    "port" : inbound_data["port"],
-    "type" : inbound_data["network"],
-    "security" : inbound_data["security"],
-    "pbk" : inbound_data["public_key"],
-    "fp" : inbound_data["fingerprint"],
-    "sni" : "yahoo.com",
-    "sid" : inbound_data["short_ids"][(random.randint(0, 7))],
-    "remark" : inbound_data["remark"],
-    "client" : inbound_data["email"]
-    }
-
-    config = f'''vless://\
-    {config_variables["id"]}@\
-    {config_variables["ip"]}:\
-    {config_variables["port"]}/?\
-    type={config_variables["type"]}&\
-    security={config_variables["security"]}&\
-    pbk={config_variables["pbk"]}&\
-    fp={config_variables["fp"]}&\
-    sni={config_variables["sni"]}&\
-    sid={config_variables["sid"]}#\
-    {config_variables["remark"]}-\
-    {config_variables["client"]}'''
-    print(config.replace("\n", "").replace(" ", ""), "\n")
-
     r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data, headers=auth_headers)
-    print(r.text)
+    print(r.status_code)
+#--------------------------------------------------------------------------
 
-#Инициализация случайных переменных при создании конфига с последующей отправкой сформированных данных в функцию с самим запросом
+#|=============================[Add Inbound Init]=============================|
 async def add_inbound(auth_headers):
     r = await http(method="POST", url = endpoints["base_path"] + endpoints["keygen"], headers=auth_headers)
     keys = r.json()['obj']
@@ -207,7 +189,7 @@ async def add_inbound(auth_headers):
     enable = True
     expiryTime = 0
     listen = ""
-    port = int(random.randint(1000, 65535))
+    port = random.randint(1000, 65535)
     protocol = "vless"
     client_id = str(uuid.uuid4())
     email = str(str(await string_generator(type="letter", lenght=8)))
@@ -261,9 +243,44 @@ async def add_inbound(auth_headers):
         "fingerprint" : fingerprint,
         "spiderx" : spiderx,
     }
-
+    await create_config(inbound_data)
     return await add_inbound_data(inbound_data)
+#--------------------------------------------------------------------------
 
+#|=============================[Config Generator]=============================|
+async def create_config(inbound_data):
+    config_variables = {
+    "id" : inbound_data["client_id"],
+    "ip" : "191.96.235.118",
+    "port" : inbound_data["port"],
+    "type" : inbound_data["network"],
+    "security" : inbound_data["security"],
+    "pbk" : inbound_data["public_key"],
+    "fp" : inbound_data["fingerprint"],
+    "sni" : "yahoo.com",
+    "sid" : inbound_data["short_ids"][(random.randint(0, 7))],
+    "remark" : inbound_data["remark"],
+    "client" : inbound_data["email"]
+    }
+
+    config = f'''vless://\
+    {config_variables["id"]}@\
+    {config_variables["ip"]}:\
+    {config_variables["port"]}/?\
+    type={config_variables["type"]}&\
+    security={config_variables["security"]}&\
+    pbk={config_variables["pbk"]}&\
+    fp={config_variables["fp"]}&\
+    sni={config_variables["sni"]}&\
+    sid={config_variables["sid"]}#\
+    {config_variables["remark"]}-\
+    {config_variables["client"]}'''
+    url = config.replace("\n", "").replace(" ", "")
+    qr = pyqrcode.create(url)
+    qr.png('ss.png')
+#--------------------------------------------------------------------------
+
+#|=============================[String Generator]=============================|
 async def string_generator(type: str, lenght):
     return_variable = str()
     if type == "letter":
@@ -275,7 +292,9 @@ async def string_generator(type: str, lenght):
     else:
         return None
     return return_variable
+#--------------------------------------------------------------------------
 
+#|=============================[Generate Random SID]=============================|
 async def random_short_ids():
         lengths = [2, 4, 6, 8, 10, 12, 14, 16]
         
@@ -293,3 +312,4 @@ async def random_short_ids():
             short_ids.append(short_id)
 
         return short_ids
+#--------------------------------------------------------------------------
