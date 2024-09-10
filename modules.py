@@ -92,91 +92,110 @@ async def add_client(
     return 
 
 async def add_inbound_data(inbound_data):
-    data = {
-        "up": inbound_data["up"],
-        "down": inbound_data["down"],
-        "total": inbound_data["total"],
-        "remark": inbound_data["remark"],
-        "enable": inbound_data["enable"],
-        "expiryTime": inbound_data["expiryTime"],
-        "listen": inbound_data["listen"],
-        "port": inbound_data["port"],
-        "protocol": inbound_data["protocol"],
+    settings = json.dumps({
+    "clients": [
+        {
+            "id": inbound_data["client_id"],
+            "email": inbound_data["email"],
+            "limitIp": inbound_data["limit_ip"],
+            "totalGB": inbound_data["total_gb"],
+            "expiryTime": inbound_data["client_expiry_time"],
+            "enable": inbound_data["enable"],
+            "tgId": inbound_data["tg_id"],
+            "subId": inbound_data["sub_id"],
+            "reset": inbound_data["reset"]
+        }
+    ],
+    "decryption": "none",
+    "fallbacks": []
+})
+
+    stream_settings = json.dumps({
+    "network": inbound_data["network"],
+    "security": inbound_data["security"],
+    "realitySettings": {
+        "dest": inbound_data["dest"],
+        "serverNames": inbound_data["server_names"],
+        "privateKey": inbound_data["private_key"],
+        "shortIds" : inbound_data["short_ids"],
         "settings": {
-            "clients": [
-                {
-                    "id": inbound_data["client_id"],
-                    "flow": "",
-                    "email": inbound_data["email"],
-                    "limitIp": inbound_data["limit_ip"],
-                    "totalGB": inbound_data["total_gb"],
-                    "expiryTime": inbound_data["client_expiry_time"],
-                    "enable": inbound_data["enable"],
-                    "tgId": inbound_data["tg_id"],
-                    "subId": inbound_data["sub_id"],
-                    "reset": inbound_data["reset"]
-                }
-            ],
-            "decryption": "none",
-            "fallbacks": []
-        },
-        "streamSettings": {
-            "network": inbound_data["network"],
-            "security": inbound_data["security"],
-            "externalProxy": [],
-            "realitySettings": {
-                "show": False,
-                "xver": 0,
-                "dest": inbound_data["dest"],
-                "serverNames": inbound_data["server_names"],
-                "privateKey": inbound_data["private_key"],
-                "minClient": "",
-                "maxClient": "",
-                "maxTimediff": 0,
-                "shortIds": inbound_data["short_ids"],
-                "settings": {
-                    "publicKey": inbound_data["public_key"],
-                    "fingerprint": inbound_data["fingerprint"],
-                    "serverName": "",
-                    "spiderX": inbound_data["spider_x"]
-                }
-            },
-            "tcpSettings": {
-                "acceptProxyProtocol": False,
-                "header": {
-                    "type": "none"
-                }
-            }
-        },
-        "sniffing": {
-            "enabled": False,
-            "destOverride": ["http", "tls", "quic", "fakedns"],
-            "metadataOnly": False,
-            "routeOnly": False
+            "fingerprint": inbound_data["fingerprint"],
+            "publicKey": inbound_data["public_key"],
+            "spiderX" : inbound_data["spiderx"]
+        }
+    },
+    "tcpSettings": {
+        "acceptProxyProtocol": False,
+        "header": {
+            "type": "none"
         }
     }
+})
+    
+
+    sniffing = json.dumps({
+    "enabled": True,
+    "destOverride": [
+        "http",
+        "tls",
+        "quic",
+        "fakedns"
+    ],
+    "metadataOnly": False,
+    "routeOnly": False
+})
+    
+    data = json.dumps({
+    "up": inbound_data["up"],
+    "down": inbound_data["down"],
+    "total": inbound_data["total"],
+    "remark": inbound_data["remark"],
+    "enable": inbound_data["enable"],
+    "expiryTime": inbound_data["expiryTime"],
+    "listen": inbound_data["listen"],
+    "port": inbound_data["port"],
+    "protocol": inbound_data["protocol"],
+    # Три нижних параметра пришлось вынести отдельно для двойного энкодинга, тк конкретно в случае vless это является необходимостью
+    "settings": settings,
+    "streamSettings": stream_settings,
+    "sniffing": sniffing
+})
     
     endpoints = inbound_data["endpoints"]
     auth_headers = inbound_data["auth_headers"]
 
+    config_variables = {
+    "id" : inbound_data["client_id"],
+    "ip" : "191.96.235.118",
+    "port" : inbound_data["port"],
+    "type" : inbound_data["network"],
+    "security" : inbound_data["security"],
+    "pbk" : inbound_data["public_key"],
+    "fp" : inbound_data["fingerprint"],
+    "sni" : "yahoo.com",
+    "sid" : inbound_data["short_ids"][(random.randint(0, 7))],
+    "remark" : inbound_data["remark"],
+    "client" : inbound_data["email"]
+    }
 
-    data2 = json.dumps({
-        "enable": True,
-        "remark": "New inbound",
-        "listen": "",
-        "port": 48965,
-        "protocol": "vmess",
-        "expiryTime": 0,
-        "settings": "{\"clients\":[],\"decryption\":\"none\",\"fallbacks\":[]}",
-        "streamSettings": "{\"network\":\"ws\",\"security\":\"none\",\"wsSettings\":{\"acceptProxyProtocol\":false,\"path\":\"/\",\"headers\":{}}}",
-        "sniffing": "{\"enabled\":true,\"destOverride\":[\"http\",\"tls\"]}"
-        })
+    config = f'''vless://\
+    {config_variables["id"]}@\
+    {config_variables["ip"]}:\
+    {config_variables["port"]}/?\
+    type={config_variables["type"]}&\
+    security={config_variables["security"]}&\
+    pbk={config_variables["pbk"]}&\
+    fp={config_variables["fp"]}&\
+    sni={config_variables["sni"]}&\
+    sid={config_variables["sid"]}#\
+    {config_variables["remark"]}-\
+    {config_variables["client"]}'''
+    print(config.replace("\n", "").replace(" ", ""), "\n")
 
-
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data2, headers=auth_headers)
+    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data, headers=auth_headers)
     print(r.text)
 
-
+#Инициализация случайных переменных при создании конфига с последующей отправкой сформированных данных в функцию с самим запросом
 async def add_inbound(auth_headers):
     r = await http(method="POST", url = endpoints["base_path"] + endpoints["keygen"], headers=auth_headers)
     keys = r.json()['obj']
@@ -184,19 +203,19 @@ async def add_inbound(auth_headers):
     up = 0
     down = 0
     total = 0
-    remark = "huhuhuhuhu"
+    remark = str(str(await string_generator(type="letter", lenght=8)))
     enable = True
     expiryTime = 0
     listen = ""
-    port = random.randint(1000, 65535)
+    port = int(random.randint(1000, 65535))
     protocol = "vless"
     client_id = str(uuid.uuid4())
-    email = str()
+    email = str(str(await string_generator(type="letter", lenght=8)))
     limit_ip = 0
     total_gb = 0
     client_expiry_time = 0
     tg_id = ""
-    sub_id = str()
+    sub_id = str(await string_generator(type="letdiggest", lenght=17))
     reset = 0
     network = "tcp"
     security = "reality"
@@ -204,28 +223,14 @@ async def add_inbound(auth_headers):
     server_names = [
     "yahoo.com",
     "www.yahoo.com"
-    ],
-    private_key = keys["privateKey"]
-    short_ids = [
-    "12",
-    "73a21a72b0",
-    "533716fa",
-    "818e07ab59c4fc",
-    "8c93",
-    "a3bf36",
-    "df114f8d28ce94d2",
-    "1bcad2b1873a"
     ]
+    short_ids = await random_short_ids()
+    private_key = keys["privateKey"]
     public_key = keys["publicKey"]
     fingerprint = "random"
-    spider_x = "/"
+    spiderx = "/"
 
-    for i in range(1, 8):
-        email += ascii_letters[random.randint(1, 50)]
-        pass
-    for i in range(1, 17):
-        sub_id += ascii_letdigest[random.randint(1, 60)]
-
+#Заворачивание всех переменных в единый словарь
     inbound_data = {
         "endpoints" : endpoints,
         "auth_headers" : auth_headers,
@@ -250,15 +255,41 @@ async def add_inbound(auth_headers):
         "security" : security,
         "dest" : dest,
         "server_names" : server_names,
-        "private_key" : private_key,
         "short_ids" : short_ids,
+        "private_key" : private_key,
         "public_key" : public_key,
         "fingerprint" : fingerprint,
-        "spider_x" : spider_x,
+        "spiderx" : spiderx,
     }
 
     return await add_inbound_data(inbound_data)
 
+async def string_generator(type: str, lenght):
+    return_variable = str()
+    if type == "letter":
+        for i in range(1, lenght):
+            return_variable += ascii_letters[random.randint(1, 50)]
+    elif type == "letdiggest":
+        for i in range(1, lenght):
+            return_variable += ascii_letdigest[random.randint(1, 60)]
+    else:
+        return None
+    return return_variable
 
+async def random_short_ids():
+        lengths = [2, 4, 6, 8, 10, 12, 14, 16]
+        
+        # Перемешиваем список lengths
+        for i in range(len(lengths) - 1, 0, -1):
+            j = random.randint(0, i)
+            lengths[i], lengths[j] = lengths[j], lengths[i]
 
-#generate_config = config_generator("vless", config, data)
+        # Генерация случайных shortId
+        short_ids = []
+        seq = '0123456789abcdef'  # последовательность из 16 символов
+
+        for length in lengths:
+            short_id = ''.join(random.choice(seq) for _ in range(length))
+            short_ids.append(short_id)
+
+        return short_ids
