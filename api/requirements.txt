@@ -1,4 +1,5 @@
 fastapi[all]
+fastapi-offline
 uvicorn
 python-multipart
 httpx

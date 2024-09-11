@@ -1,66 +1,81 @@
 services:
-  psql:
-    hostname: psql
-    image: postgres:14
-    container_name: psql
-    restart: on-failure
-    volumes:
-      - psql:/var/lib/postgresql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      TZ: Europe/Moscow
-    networks:
-      sorm_network:
-        ipv4_address: 172.72.72.2
 
-  api:
-    hostname: api
-    build: 
-      context: ./api
-      args:
-        FASTAPI_KEY: ${FASTAPI_KEY}
-        FASTAPI_DEBUG: ${FASTAPI_DEBUG}
-        PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
-    container_name: api
-    restart: always
-    ports:
-      - "8000:8000"
-    depends_on:
-      - psql
-    networks:
-      sorm_network:
-        ipv4_address: 172.70.70.3
 
   # bot:
   #   hostname: bot
-  #   build:      
-  #     context: ./bot
-  #     args:
-  #       TGBOT_DEBUG: ${TGBOT_DEBUG}
-  #       BOT_TOKEN: ${BOT_TOKEN}
-  #       BOT_TOKEN_TEST: ${BOT_TOKEN_TEST}
-  #       FASTAPI_KEY: ${FASTAPI_KEY}
   #   container_name: bot
+  #   build: 
+  #       context: ./bot
+  #   environment:
+  #       BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
+  #       BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
+  #       REDIS_DSN: ${REDIS_DSN}
+  #       FASTAPI_KEY: ${FASTAPI_KEY}
   #   restart: always
   #   depends_on:
-  #     - psql
+  #       - redis    
+  #       - psql
   #   networks:
-  #     duck_network:
-  #       ipv4_address: 172.70.70.4
+  #       - 3xui_network
 
+
+  api:
+    hostname: fastapi
+    container_name: fastapi
+    build: 
+        context: ./fastapi
+    environment:
+        FASTAPI_KEY: ${FASTAPI_KEY}
+        POSTGRES_DSN: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
+        REDIS_DSN: ${REDIS_DSN}
+    command: bash -c 'while !</dev/tcp/psql/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
+    ports:
+        - "8000:8000"
+    restart: always
+    depends_on:
+        - redis    
+        - psql
+    networks:
+        - 3xui_network
+
+
+  psql:
+    image: postgres:15
+    hostname: psql
+    container_name: psql
+    restart: always
+    volumes:
+        - psql-data:/var/lib/postgresql/data/
+        - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+        - "5432:5432"
+    environment:
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWD}
+        POSTGRES_DB: ${POSTGRES_DB}
+        TZ: Europe/Moscow
+    networks:
+        - 3xui_network
   
+
+  redis:
+    image: redis:7.2
+    hostname: redis
+    container_name: redis
+    restart: always
+    healthcheck:
+        test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+        interval: 10m10s
+    ports:
+        - "6379:6379"
+    networks:
+        - 3xui_network
+
+
 
 volumes:
   psql: 
 
+
 networks:
-  sorm_network:
+  3xui_network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.72.72.0/24
-          gateway: 172.72.72.1
