@@ -1,0 +1,26 @@
+FROM python:3.11.5-slim
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG PG_CONN_URL
+ARG FASTAPI_DEBUG
+ARG FASTAPI_KEY
+
+WORKDIR /root/api
+
+# Install requirements
+COPY requirements.txt .
+
+# RUN apt-get update && apt-get install -y gcc
+RUN pip install uv
+
+RUN pip install -r requirements.txt
+
+
+COPY . .
+
+RUN echo "apikey='${FASTAPI_KEY}'" > env.py
+RUN echo "debug=${FASTAPI_DEBUG}" >> env.py
+RUN echo "pg_conn='${PG_CONN_URL}'" >> env.py
+
+# change on prod to: https://www.uvicorn.org/deployment/
+ENTRYPOINT ["uvicorn", "main:app", "--reload", "--host", "api", "--port", "8000"]

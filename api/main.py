@@ -1,6 +1,6 @@
 import api
 from fastapi import Body, UploadFile
-from config import api_init, Tags
+from api.config import api_init, Tags
 from examples import ex
 # pre-config #
 app = api_init()
@@ -16,26 +16,6 @@ async def user_create(data = Body(example=ex.user_create)):
 @app.get("/user/{tgid}", tags=[Tags.user], summary="User info")
 async def user_info(tgid: int):
     r = await api.user_info(tgid)
-    return r
-#--------------------------------------------------------------------------
-@app.post("/user/target/set", tags=[Tags.user], summary="Set target")
-async def target_set(data = Body(example=ex.target_set)):
-    r = await api.target_set(data)
-    return r
-#--------------------------------------------------------------------------
-@app.get("/user/target/get/{tgid}", tags=[Tags.user], summary="Get target")
-async def set_target(tgid: int):
-    r = await api.target_get(tgid)
-    return r
-#--------------------------------------------------------------------------
-@app.post("/tempmail/create", tags=[Tags.temp_mail], summary="Mail create")
-async def mail_create(data = Body(example=ex.mail_create)):
-    r = await api.mail_create(data)
-    return r
-#--------------------------------------------------------------------------
-@app.get("/tempmail/check/mailbox/{tgid}", tags=[Tags.temp_mail], summary="Mailbox check")
-async def mailbox_check(tgid: int):
-    r = await api.mailbox_check(tgid)
     return r
 #--------------------------------------------------------------------------
 @app.get("/admin/isadmin/{tgid}", tags=[Tags.admin], summary="Is admin")
@@ -91,6 +71,16 @@ async def admin_grep_users(tgid: int):
 @app.get("/admin/fetchadmins", tags=[Tags.admin], summary="Get all users")
 async def admin_fetchadmins():
     r = await api.admin_fetchadmins()
+    return r
+#--------------------------------------------------------------------------
+@app.get("/xui_login", tags=[Tags.user], summary="inbound creation")
+async def xui_login():
+    r = await api.xui_login()
+    return r
+#--------------------------------------------------------------------------
+@app.get("/inbound_creation", tags=[Tags.user], summary="inbound creation")
+async def inbound_creation(username, password, path):
+    r = await api.inbound_creation(username, password, path)
     return r
 #--------------------------------------------------------------------------
 

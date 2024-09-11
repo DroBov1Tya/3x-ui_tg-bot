@@ -13,7 +13,7 @@ SECRET_VALUE = apikey       # CHANGE ME ON PROD !!!
 SECRET_HEADER = 'X-API-Key'
 
 
-docs_title = 'Duck Say Crack API'
+docs_title = 'Xui API'
 docs_description = 'Не лезь, убьёт!'
 
 class Tags(Enum):
@@ -113,7 +113,6 @@ async def http(url: str, method: str = "GET", headers = None, data = None, json 
 
 
 endpoints = {
-    "base_path" :                   "http://191.96.235.118:2053/jJyuPk5b1F",
     "login" :                       "/login",
     "list" :                        "/panel/api/inbounds/list",
     "get_inbound" :                 "/panel/api/inbounds/get/",

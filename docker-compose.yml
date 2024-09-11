@@ -1,39 +1,4 @@
 services:
-
-  # api:
-  #   hostname: api
-  #   build: 
-  #     context: ./api
-  #     args:
-  #       FASTAPI_KEY: ${FASTAPI_KEY}
-  #       FASTAPI_DEBUG: ${FASTAPI_DEBUG}
-  #       PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
-  #   container_name: api
-  #   restart: always
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - psql
-  #   networks:
-  #     sorm_network:
-  #       ipv4_address: 172.70.70.3
-
-  # logic:
-  #   hostname: main
-  #   build:
-  #     context: ./main
-  #     args:
-  #       FASTAPI_KEY: ${FASTAPI_KEY}
-  #       PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
-  #   container_name: main
-  #   restart: on-failure
-  #   depends_on:
-  #     - psql
-  #   networks:
-  #     sorm_network:
-  #       ipv4_address: 172.70.70.4
-
-  
   psql:
     hostname: psql
     image: postgres:14
@@ -52,8 +17,45 @@ services:
       sorm_network:
         ipv4_address: 172.72.72.2
 
+  api:
+    hostname: api
+    build: 
+      context: ./api
+      args:
+        FASTAPI_KEY: ${FASTAPI_KEY}
+        FASTAPI_DEBUG: ${FASTAPI_DEBUG}
+        PG_CONN_URL: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
+    container_name: api
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - psql
+    networks:
+      sorm_network:
+        ipv4_address: 172.70.70.3
+
+  # bot:
+  #   hostname: bot
+  #   build:      
+  #     context: ./bot
+  #     args:
+  #       TGBOT_DEBUG: ${TGBOT_DEBUG}
+  #       BOT_TOKEN: ${BOT_TOKEN}
+  #       BOT_TOKEN_TEST: ${BOT_TOKEN_TEST}
+  #       FASTAPI_KEY: ${FASTAPI_KEY}
+  #   container_name: bot
+  #   restart: always
+  #   depends_on:
+  #     - psql
+  #   networks:
+  #     duck_network:
+  #       ipv4_address: 172.70.70.4
+
+  
+
 volumes:
-  psql:
+  psql: 
 
 networks:
   sorm_network:

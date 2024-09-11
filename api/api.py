@@ -1,6 +1,8 @@
 from config import PostgreSQL
 import json
-from modules import psql_func
+from src import psql_func
+from api.src import xui_func
+from src import ssh_func
 pg = PostgreSQL()
 
 #--------------------------------------------------------------------------
@@ -21,24 +23,6 @@ async def user_info(tgid): #DONE
     else:
         return {"Success": True, "user": r }
 #--------------------------------------------------------------------------
-# 3. /user/target/set
-async def target_set(data):
-    userinfo = data['user']
-    tgid, target = userinfo['tgid'], userinfo['target']
-    r = await pg.fetch(f"UPDATE users SET target = '{target}' WHERE tgid = {tgid};")
-    if r is None:
-        return {"Success": False, "Reason": "User not found"}
-    else:
-        return {"Success": True, "user": r }
-#--------------------------------------------------------------------------
-# 4. /user/target/get/{tgid}
-async def target_get(tgid):
-    r = await pg.fetch(f"SELECT target FROM users WHERE tgid = {tgid};")
-    if r:
-        return {"Success": True, "result": r }
-    else:
-        return {"Success": False, "Reason": "User not found"}
-#--------------------------------------------------------------------------
 # 5. /user/isadmin
 async def is_admin(tgid):
     r = await pg.fetch(f"SELECT is_admin FROM users WHERE tgid = {tgid};")
@@ -46,21 +30,6 @@ async def is_admin(tgid):
         return {"Success": False, "Reason": "User not admin"}
     else:
         return {"Success": True}
-#--------------------------------------------------------------------------
-# 6. /tempmail/create
-async def mail_create(data):
-    userinfo = data['info']
-    tgid, login, domain = userinfo['tgid'], userinfo['login'], userinfo['domain']
-    r = await pg.fetch(f"INSERT INTO temp_mail (tgid, login, domain) VALUES ({tgid}, '{login}', '{domain}') ON CONFLICT (tgid) DO UPDATE SET login = '{login}', domain = '{domain}';")
-    return {"Success": True}
-#--------------------------------------------------------------------------
-# 7. /tempmail/check/mailbox/{tgid}
-async def mailbox_check(tgid):
-    r = await pg.fetch(f"SELECT login, domain from temp_mail WHERE tgid = {tgid};")
-    if r:
-        return {"Success": True, "login": r['login'], "domain": r['domain'] }
-    else:
-        {"Success": False, "Reason": "User not found"}
 #--------------------------------------------------------------------------
 # 9. /admin/
 async def admin_set(tgid):
@@ -126,7 +95,6 @@ async def admin_level3(tgid):
 #--------------------------------------------------------------------------
 # 17. /admin/
 #async def admin_grep_users(data):
-
 #--------------------------------------------------------------------------
 async def admin_fetchadmins():
     r = await pg.fetchall(f"SELECT tgid FROM users WHERE is_admin = True")
@@ -137,6 +105,13 @@ async def admin_fetchadmins():
         for admin in r:
             ids.append(admin['tgid'])
         return {"Success": True, "result": ids}
+#--------------------------------------------------------------------------
+async def xui_login():
+    await xui_func.login()
+#--------------------------------------------------------------------------
+async def inbound_creation(username, password, path):
+    auth_headers = await xui_func.login(username, password, path)
+    await xui_func.add_inbound(auth_headers)
 #--------------------------------------------------------------------------
 
 

@@ -1,16 +1,17 @@
 import json
 import random, uuid
-from modules import generator_func
+import os
+from src import generator_func
 from config import http, endpoints
 
 #|=============================[Login]=============================|
-async def login(username, password): 
+async def login(username, password, endpoints, webpath): 
     auth_data = {
         'username': username,
         'password': password
     }
 
-    r = await http(method="POST", url=endpoints["base_path"] + endpoints["login"] , data=auth_data)
+    r = await http(method="POST", url=webpath + endpoints["login"] , data=auth_data)
     session_cookie = r.cookies.get("3x-ui")
 
     if session_cookie:
@@ -238,8 +239,11 @@ async def add_inbound(auth_headers):
         "fingerprint" : fingerprint,
         "spiderx" : spiderx,
     }
-    await generator_func.create_config(inbound_data)
-    return await add_inbound_data(inbound_data)
+    if os.path.exists("qr_code"):
+        await generator_func.create_config(inbound_data)
+        return await add_inbound_data(inbound_data)
+    else:
+        os.makedirs("qr_code")
+        await generator_func.create_config(inbound_data)
+        return await add_inbound_data(inbound_data)
 #--------------------------------------------------------------------------
-
-

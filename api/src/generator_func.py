@@ -34,7 +34,7 @@ async def create_config(inbound_data):
     {config_variables["client"]}'''
     url = config.replace("\n", "").replace(" ", "")
     qr = pyqrcode.create(url)
-    qr.png('ss.png')
+    qr.png(f'qr_code/{config_variables["client"]}.png')
 #--------------------------------------------------------------------------
 
 #|=============================[Generate Random SID]=============================|
