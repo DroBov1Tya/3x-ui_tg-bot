@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import APIKeyHeader
-from fastapi import FastAPI
+from fastapi_offline import FastAPIOffline # from fastapi import FastAPI
 from enum import Enum
 import httpx
 import asyncpg
@@ -33,20 +33,15 @@ def auth401():
     return auth_dep
 
 def api_init():
-    if debug:
-        app = FastAPI(
-            #dependencies = auth401(),
-            title = docs_title,
-            description = docs_description,
-            )
-    else:
-        app = FastAPI(
-            docs_url = None, # Disable docs (Swagger UI)
-            redoc_url = None, # Disable redoc
-            dependencies = auth401(),
-            title = docs_title,
-            description = docs_description,
+
+    app = FastAPIOffline(
+        # docs_url = None, # Disable docs (Swagger UI)
+        # redoc_url = None, # Disable redoc
+        dependencies = auth401(),
+        title = docs_title,
+        description = docs_description,
         )
+
     return app
 
 # asyncpg wrapper
