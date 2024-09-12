@@ -23,17 +23,18 @@ services:
     hostname: fastapi
     container_name: fastapi
     build: 
-        context: ./fastapi
+        context: ./api
     environment:
         FASTAPI_KEY: ${FASTAPI_KEY}
+        FASTAPI_DEBUG: ${FASTAPI_DEBUG}
         POSTGRES_DSN: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
-        REDIS_DSN: ${REDIS_DSN}
+        # REDIS_DSN: ${REDIS_DSN}
     command: bash -c 'while !</dev/tcp/psql/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
     ports:
         - "8000:8000"
     restart: always
     depends_on:
-        - redis    
+        # - redis    
         - psql
     networks:
         - 3xui_network
@@ -57,23 +58,23 @@ services:
         - 3xui_network
   
 
-  redis:
-    image: redis:7.2
-    hostname: redis
-    container_name: redis
-    restart: always
-    healthcheck:
-        test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-        interval: 10m10s
-    ports:
-        - "6379:6379"
-    networks:
-        - 3xui_network
+  # redis:
+  #   image: redis:7.2
+  #   hostname: redis
+  #   container_name: redis
+  #   restart: always
+  #   healthcheck:
+  #       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+  #       interval: 10m10s
+  #   ports:
+  #       - "6379:6379"
+  #   networks:
+  #       - 3xui_network
 
 
 
 volumes:
-  psql: 
+  psql-data: 
 
 
 networks:

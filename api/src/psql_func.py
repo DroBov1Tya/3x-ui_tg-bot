@@ -1,4 +1,4 @@
-from api.config import PostgreSQL
+from config import PostgreSQL
 
 pg = PostgreSQL()
 async def test():

@@ -12,25 +12,28 @@ CREATE TABLE users (
     is_admin        boolean NOT NULL DEFAULT false,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
 CREATE TABLE servers (
     id          serial PRIMARY KEY,
-    ip          TEXT,
-    user        TEXT,
-    pass        TEXT,
+    hostname    TEXT,
+    port        TEXT,
+    username    TEXT,
+    passwd      TEXT,
+    country     TEXT,
     web_user    TEXT,
     web_pass    TEXT,
     web_path    TEXT,
     is_alive    boolean,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
-)
+);
 
 CREATE TABLE configs (
     id          serial PRIMARY KEY,
     tg_user     TEXT,
     inbound     TEXT,
-    user        TEXT,
+    users        TEXT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
-)
+);
 
 
 INSERT INTO users
@@ -39,4 +42,3 @@ VALUES
     (1, 385922337, 'drobov1k', false, true),
     (2, 453533812, 'coder1', false, true),
     (3, 5123972512, 'alladon', false, true);
---

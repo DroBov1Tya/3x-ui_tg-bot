@@ -5,7 +5,7 @@ from src import generator_func
 from config import http, endpoints
 
 #|=============================[Login]=============================|
-async def login(username, password, endpoints, webpath): 
+async def login(username, password, webpath): 
     auth_data = {
         'username': username,
         'password': password
@@ -26,6 +26,11 @@ async def login(username, password, endpoints, webpath):
         return None
     else:
         return headers
+#--------------------------------------------------------------------------
+
+#|=============================[Init]=============================|
+async def init(username, password, webpath):
+    auth_headers = await login(username, password, webpath)
 #--------------------------------------------------------------------------
 
 #|=============================[Get List]=============================|
@@ -96,7 +101,7 @@ async def add_client(
 #--------------------------------------------------------------------------
 
 #|=============================[Add Inbound Request]=============================|
-async def add_inbound_data(inbound_data):
+async def add_inbound_data(inbound_data, webpath):
     settings = json.dumps({
     "clients": [
         {
@@ -169,13 +174,13 @@ async def add_inbound_data(inbound_data):
     endpoints = inbound_data["endpoints"]
     auth_headers = inbound_data["auth_headers"]
 
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["add_inbound"], data=data, headers=auth_headers)
+    r = await http(method="POST", url = webpath + endpoints["add_inbound"], data=data, headers=auth_headers)
     print(r.status_code)
 #--------------------------------------------------------------------------
 
 #|=============================[Add Inbound Init]=============================|
-async def add_inbound(auth_headers):
-    r = await http(method="POST", url = endpoints["base_path"] + endpoints["keygen"], headers=auth_headers)
+async def add_inbound(auth_headers, webpath):
+    r = await http(method="POST", url = webpath + endpoints["keygen"], headers=auth_headers)
     keys = r.json()['obj']
 
     up = 0
@@ -240,10 +245,15 @@ async def add_inbound(auth_headers):
         "spiderx" : spiderx,
     }
     if os.path.exists("qr_code"):
-        await generator_func.create_config(inbound_data)
-        return await add_inbound_data(inbound_data)
+        r = await generator_func.create_config(inbound_data, webpath)
+        return await add_inbound_data(inbound_data), r
     else:
         os.makedirs("qr_code")
-        await generator_func.create_config(inbound_data)
-        return await add_inbound_data(inbound_data)
+        r = await generator_func.create_config(inbound_data)
+        return await add_inbound_data(inbound_data, webpath), r
+#--------------------------------------------------------------------------
+#|=============================[Add Inbound Init]=============================|
+async def geo_ip(hostname):
+    r = await http(url = "http://ip-api.com/json/" + hostname)
+    return str(r.json()["country"])
 #--------------------------------------------------------------------------

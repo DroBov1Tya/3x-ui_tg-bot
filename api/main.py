@@ -1,6 +1,6 @@
 import api
 from fastapi import Body, UploadFile
-from api.config import api_init, Tags
+from config import api_init, Tags
 from examples import ex
 # pre-config #
 app = api_init()
@@ -73,14 +73,24 @@ async def admin_fetchadmins():
     r = await api.admin_fetchadmins()
     return r
 #--------------------------------------------------------------------------
+@app.post("/add_server", tags=[Tags.user], summary="inbound creation")
+async def add_server(data = Body(example=ex.add_server)):
+    r = await api.add_server(data)
+    return r
+#--------------------------------------------------------------------------
+@app.post("/init_server", tags=[Tags.user], summary="inbound creation")
+async def init_server(data = Body(example=ex.init_server)):
+    r = await api.init_server(data)
+    return r
+#--------------------------------------------------------------------------
 @app.get("/xui_login", tags=[Tags.user], summary="inbound creation")
 async def xui_login():
     r = await api.xui_login()
     return r
 #--------------------------------------------------------------------------
-@app.get("/inbound_creation", tags=[Tags.user], summary="inbound creation")
-async def inbound_creation(username, password, path):
-    r = await api.inbound_creation(username, password, path)
+@app.post("/inbound_creation", tags=[Tags.user], summary="inbound creation")
+async def inbound_creation(data = Body(example=ex.inbound_creation)):
+    r = await api.inbound_creation(data)
     return r
 #--------------------------------------------------------------------------
 

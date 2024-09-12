@@ -51,10 +51,10 @@ async def get_cred(ssh_client):
     except Exception as e:
         print(f"Произошла ошибка: {str(e)}")
 
-async def ssh(port, user, host, passwd):
+async def ssh_reg(hostname, port, username, passwd):
+    HOSTNAME = hostname
     PORT = port
-    USERNAME = user
-    HOSTNAME = host
+    USERNAME = username
     PASSWORD = passwd
 
     ssh_client = paramiko.SSHClient()
@@ -68,4 +68,4 @@ async def ssh(port, user, host, passwd):
     return creds
 
 if __name__ == "__main__":
-    asyncio.run(ssh())
+    asyncio.run(ssh_reg())

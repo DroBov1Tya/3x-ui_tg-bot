@@ -4,8 +4,11 @@ from fastapi_offline import FastAPIOffline # from fastapi import FastAPI
 from enum import Enum
 import httpx
 import asyncpg
-from env import debug, apikey, pg_conn
+import os
 
+debug = os.getenv('FASTAPI_DEBUG', 'False')
+apikey = os.getenv('FASTAPI_KEY', '')
+pg_conn = os.getenv('POSTGRES_DSN', '')
 
 # VARS #
 debug = debug               # TURN OFF DEBUG ON PROD !!!
@@ -18,7 +21,6 @@ docs_description = 'Не лезь, убьёт!'
 
 class Tags(Enum):
     user = "User"
-    temp_mail = "Temp mail"
     admin = "Admin"
 
 
@@ -33,15 +35,20 @@ def auth401():
     return auth_dep
 
 def api_init():
-
-    app = FastAPIOffline(
-        # docs_url = None, # Disable docs (Swagger UI)
-        # redoc_url = None, # Disable redoc
-        dependencies = auth401(),
-        title = docs_title,
-        description = docs_description,
+    if debug:
+        app = FastAPIOffline(
+            #dependencies = auth401(),
+            title = docs_title,
+            description = docs_description,
+            )
+    else:
+        app = FastAPIOffline(
+            docs_url = None, # Disable docs (Swagger UI)
+            redoc_url = None, # Disable redoc
+            dependencie = auth401(),
+            title = docs_title,
+            description = docs_description,
         )
-
     return app
 
 # asyncpg wrapper

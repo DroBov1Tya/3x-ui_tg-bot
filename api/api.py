@@ -1,7 +1,7 @@
 from config import PostgreSQL
 import json
 from src import psql_func
-from api.src import xui_func
+from src import xui_func
 from src import ssh_func
 pg = PostgreSQL()
 
@@ -105,13 +105,56 @@ async def admin_fetchadmins():
         for admin in r:
             ids.append(admin['tgid'])
         return {"Success": True, "result": ids}
+    
+
 #--------------------------------------------------------------------------
-async def xui_login():
-    await xui_func.login()
+async def add_server(data): 
+    hostname = data.get("hostname")
+    port = data.get("port")
+    username = data.get("username")
+    passwd = data.get("passwd")
+
+    check_ifin = await pg.fetch("SELECT hostname FROM servers WHERE hostname = $1", (hostname,))
+    if check_ifin:
+        return {"Success": False, "Reason": "Hostname already in DB"}
+    
+    r = await pg.fetch(
+        "INSERT INTO servers (hostname, port, username, passwd) VALUES ($1, $2, $3, $4)", 
+        (hostname, port, username, passwd)
+    )
+    if r is None:
+        {"Success": False, "Reason": "Failed to insert values into the database"}
+    else:
+        return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-async def inbound_creation(username, password, path):
-    auth_headers = await xui_func.login(username, password, path)
-    await xui_func.add_inbound(auth_headers)
+# async def inbound_creation(country): 
+async def init_server(data):
+    hostname = data.get("hostname")
+    r = await pg.fetch("SELECT hostname, port, username, passwd FROM servers WHERE hostname = $1", (hostname,))
+
+    if r is None:
+        {"Success": False, "Reason": "Can't insert values into table"}
+    else:
+        geolocation = await xui_func.geo_ip(hostname)
+
+        result = await ssh_func.ssh_reg(r["hostname"], r["port"], r["username"], r["passwd"])
+        creds_upload = await pg.fetch(
+            "UPDATE servers SET country = $1, web_user = $2, web_pass = $3, web_path = $4, is_alive = $5", 
+            (geolocation, result["username"], result["password"], "http://" + hostname + "/" + result["webpath"], True)
+        )
+        return {"Success": True, "result": creds_upload}
+#-------------------------------------------------------------------------- 
+async def inbound_creation(data): 
+    username = data.get("username")
+    passwd = data.get("passwd")
+    webpath = data.get("webpath")
+
+    auth_headers = await xui_func.login(username, passwd, webpath)
+    r = await xui_func.add_inbound(auth_headers, webpath)
+    if r is None:
+        {"Success": False, "Reason": "Can't create config"}
+    else:
+        return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
 
 
