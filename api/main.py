@@ -73,24 +73,29 @@ async def admin_fetchadmins():
     r = await api.admin_fetchadmins()
     return r
 #--------------------------------------------------------------------------
-@app.post("/add_server", tags=[Tags.user], summary="inbound creation")
-async def add_server(data = Body(example=ex.add_server)):
-    r = await api.add_server(data)
+@app.post("/add_server", tags=[Tags.user], summary="add server")
+async def add_server(dict = Body(example=ex.add_server)):
+    r = await api.add_server(dict)
     return r
 #--------------------------------------------------------------------------
-@app.post("/init_server", tags=[Tags.user], summary="inbound creation")
-async def init_server(data = Body(example=ex.init_server)):
-    r = await api.init_server(data)
+@app.post("/init_server", tags=[Tags.user], summary="server initialization")
+async def init_server(dict = Body(example=ex.init_server)):
+    r = await api.init_server(dict)
     return r
 #--------------------------------------------------------------------------
-@app.get("/xui_login", tags=[Tags.user], summary="inbound creation")
+@app.get("/xui_login", tags=[Tags.user], summary="xui login")
 async def xui_login():
     r = await api.xui_login()
     return r
 #--------------------------------------------------------------------------
 @app.post("/inbound_creation", tags=[Tags.user], summary="inbound creation")
-async def inbound_creation(data = Body(example=ex.inbound_creation)):
-    r = await api.inbound_creation(data)
+async def inbound_creation(dict = Body(example=ex.inbound_creation)):
+    r = await api.inbound_creation(dict)
+    return r
+#--------------------------------------------------------------------------
+@app.get("/redis_get_all", tags=[Tags.user], summary="inbound creation")
+async def redis_get_all():
+    r = await api.redis_get_all()
     return r
 #--------------------------------------------------------------------------
 

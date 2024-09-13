@@ -1,6 +1,6 @@
 from config import PostgreSQL
 import json
-from src import psql_func
+from src import redis_func
 from src import xui_func
 from src import ssh_func
 pg = PostgreSQL()
@@ -8,7 +8,7 @@ pg = PostgreSQL()
 #--------------------------------------------------------------------------
 # 1. /user/
 async def user_create(data): # DONE
-    sql = psql_func(data)
+    sql = redis_func(data)
     r = await pg.fetch(sql)
     if r is None:
         return {"Success": False, "Reason": "User already exists"}
@@ -105,8 +105,6 @@ async def admin_fetchadmins():
         for admin in r:
             ids.append(admin['tgid'])
         return {"Success": True, "result": ids}
-    
-
 #--------------------------------------------------------------------------
 async def add_server(data): 
     hostname = data.get("hostname")
@@ -118,14 +116,17 @@ async def add_server(data):
     if check_ifin:
         return {"Success": False, "Reason": "Hostname already in DB"}
     
-    r = await pg.fetch(
-        "INSERT INTO servers (hostname, port, username, passwd) VALUES ($1, $2, $3, $4)", 
-        (hostname, port, username, passwd)
-    )
-    if r is None:
-        {"Success": False, "Reason": "Failed to insert values into the database"}
-    else:
-        return {"Success": True, "result": r}
+    try:
+        r = await pg.execute(
+            "INSERT INTO servers (hostname, port, username, passwd) VALUES ($1, $2, $3, $4)", 
+            (hostname, port, username, passwd)
+        )
+        return {"Success": True, "Inserted": r}
+    
+    except Exception as e:
+        # Логируем конкретную ошибку базы данных
+        print(f"Database insertion error for {hostname}: {str(e)}")
+        return {"Success": False, "Reason": f"Failed to insert values into the database: {str(e)}"}
 #--------------------------------------------------------------------------
 # async def inbound_creation(country): 
 async def init_server(data):
@@ -151,6 +152,15 @@ async def inbound_creation(data):
 
     auth_headers = await xui_func.login(username, passwd, webpath)
     r = await xui_func.add_inbound(auth_headers, webpath)
+    if r is None:
+        {"Success": False, "Reason": "Can't create config"}
+    else:
+        return {"Success": True, "result": r}
+#--------------------------------------------------------------------------
+async def redis_get_all(): 
+    r = await redis_func.redis_get_all()
+    for key, value in r.items():
+        print(key, " : ", value)
     if r is None:
         {"Success": False, "Reason": "Can't create config"}
     else:

@@ -1,82 +1,99 @@
 services:
 
 
-  # bot:
-  #   hostname: bot
-  #   container_name: bot
-  #   build: 
-  #       context: ./bot
-  #   environment:
-  #       BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
-  #       BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
-  #       REDIS_DSN: ${REDIS_DSN}
-  #       FASTAPI_KEY: ${FASTAPI_KEY}
-  #   restart: always
-  #   depends_on:
-  #       - redis    
-  #       - psql
-  #   networks:
-  #       - 3xui_network
+    # bot:
+    #     hostname: bot
+    #     container_name: bot
+    #     build: 
+    #         context: ./bot
+    #     environment:
+    #         BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
+    #         BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
+    #         REDIS_DSN: ${REDIS_DSN}
+    #         FASTAPI_KEY: ${FASTAPI_KEY}
+    #     restart: always
+    #     depends_on:
+    #         - redis    
+    #         - psql
+    #     networks:
+    #         - 3xui_network
+
+    web:
+        hostname: web
+        container_name: web
+        build: 
+            context: ./web
+        environment:
+            REDIS_DSN: ${REDIS_DSN}
+            FASTAPI_KEY: ${FASTAPI_KEY}
+        ports:
+            - "80:80"
+        restart: always
+        depends_on:
+            - redis    
+        networks:
+            - 3xui_network
 
 
-  api:
-    hostname: fastapi
-    container_name: fastapi
-    build: 
-        context: ./api
-    environment:
-        FASTAPI_KEY: ${FASTAPI_KEY}
-        FASTAPI_DEBUG: ${FASTAPI_DEBUG}
-        POSTGRES_DSN: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
-        # REDIS_DSN: ${REDIS_DSN}
-    command: bash -c 'while !</dev/tcp/psql/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
-    ports:
-        - "8000:8000"
-    restart: always
-    depends_on:
-        # - redis    
-        - psql
-    networks:
-        - 3xui_network
+    api:
+        hostname: fastapi
+        container_name: fastapi
+        build: 
+            context: ./api
+        environment:
+            FASTAPI_KEY: ${FASTAPI_KEY}
+            FASTAPI_DEBUG: ${FASTAPI_DEBUG}
+            POSTGRES_DSN: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
+            REDIS_DSN: ${REDIS_DSN}
+            REDIS_EXPIRE: ${REDIS_EXPIRE}
+        command: bash -c 'while !</dev/tcp/psql/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
+        ports:
+            - "8000:8000"
+        restart: always
+        depends_on:
+            # - redis    
+            - psql
+        networks:
+            - 3xui_network
 
 
-  psql:
-    image: postgres:15
-    hostname: psql
-    container_name: psql
-    restart: always
-    volumes:
-        - psql-data:/var/lib/postgresql/data/
-        - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-        - "5432:5432"
-    environment:
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWD}
-        POSTGRES_DB: ${POSTGRES_DB}
-        TZ: Europe/Moscow
-    networks:
-        - 3xui_network
-  
+    psql:
+        image: postgres:15
+        hostname: psql
+        container_name: psql
+        restart: always
+        volumes:
+            - psql-data:/var/lib/postgresql/data/
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWD}
+            POSTGRES_DB: ${POSTGRES_DB}
+            TZ: Europe/Moscow
+        networks:
+            - 3xui_network
 
-  # redis:
-  #   image: redis:7.2
-  #   hostname: redis
-  #   container_name: redis
-  #   restart: always
-  #   healthcheck:
-  #       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-  #       interval: 10m10s
-  #   ports:
-  #       - "6379:6379"
-  #   networks:
-  #       - 3xui_network
+
+    redis:
+        image: redis:7.2
+        hostname: redis
+        container_name: redis
+        restart: always
+        healthcheck:
+            test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+            interval: 10m10s
+        ports:
+            - "6379:6379"
+        networks:
+            - 3xui_network
 
 
 
 volumes:
-  psql-data: 
+    psql-data: 
 
 
 networks:
-  3xui_network:
-    driver: bridge
+    3xui_network:
+        driver: bridge
