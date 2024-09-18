@@ -22,18 +22,25 @@ class ex:
     }
 #--------------------------------------------------------------------------
     add_server = {
-        "hostname": "191.96.235.118",
-        "port": "22",
+        "hostname" : "192.168.19.19",
+        "port" : "22",
         "username" : "root",
-        "passwd" : "=3vn731U^n2D7546EnZg2y"
+        "passwd" : "Papa2"
 
     }
 #--------------------------------------------------------------------------
     init_server = "191.96.235.118"
 #--------------------------------------------------------------------------
     inbound_creation = {
-        "web_username" : "web_username",
-        "web_passwd" : "web_passwd",
-        "web_path" : "web_path"
+        "hostname" : "192.168.19.19",
+        "web_user" : "fpjnIuiv",
+        "web_pass" : "Wk30Cju5",
+        "web_path" : "http://192.168.19.19:2053/KddCy91vlV"
     }
 #--------------------------------------------------------------------------
+
+    xui_login = {
+        "username" : "root",
+        "passwd" : "root",
+        "web_path" : "http://192.168.0.0/3WJH9XMEIu"
+    }

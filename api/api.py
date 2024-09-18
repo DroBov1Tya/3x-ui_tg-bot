@@ -1,101 +1,162 @@
-from config import PostgreSQL
 import json
+import logging
+from config import PostgreSQL
 from src import redis_func
 from src import xui_func
 from src import ssh_func
+from typing import Dict, Any, Union
+
 pg = PostgreSQL()
+logger = logging.getLogger(__name__)
+
+#|=============================[User panel]=============================|
 
 #--------------------------------------------------------------------------
 # 1. /user/
 async def user_create(data): # DONE
-    sql = redis_func(data)
-    r = await pg.fetch(sql)
+    userinfo = data['user']
+
+    tgid = userinfo['tgid']
+    nickname = userinfo['nickname']
+    first_name = userinfo['first_name']
+    last_name = userinfo['last_name']
+
+    r = await pg.fetch(
+        '''INSERT INTO users 
+        (tgid, nickname, first_name, last_name, is_banned) 
+        VALUES ($1, '$2', '$3', '$4', True) 
+        ON CONFLICT (tgid) DO NOTHING RETURNING true;''',
+        (tgid, nickname, first_name, last_name)
+        )
     if r is None:
         return {"Success": False, "Reason": "User already exists"}
     else:
         return {"Success": True}
 #--------------------------------------------------------------------------
+
 # 2. /user/{tgid}
 async def user_info(tgid): #DONE
-    r = await pg.fetch(f"SELECT * FROM users WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "SELECT * FROM users WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         return {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "user": r }
 #--------------------------------------------------------------------------
-# 5. /user/isadmin
+
+# 3. /user/isadmin
 async def is_admin(tgid):
-    r = await pg.fetch(f"SELECT is_admin FROM users WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "SELECT is_admin FROM users WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r['is_admin'] is False:
         return {"Success": False, "Reason": "User not admin"}
     else:
         return {"Success": True}
 #--------------------------------------------------------------------------
-# 9. /admin/
+
+#|=============================[End User panel]=============================|
+
+#|=============================[Admin panel]=============================|
+
+# 1. /admin/
 async def admin_set(tgid):
-    r = await pg.fetch(f"UPDATE users SET is_admin = TRUE WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET is_admin = TRUE WHERE tgid = $1;", 
+        (tgid,)
+        )
     if not r['is_admin']:
         return {"Success": False, "Reason": "User not admin"}
     else:
         return {"Success": True}
 #--------------------------------------------------------------------------
-# 9. /admin/
+
+# 2. /admin/
 async def admin_unset(tgid):
-    r = await pg.fetch(f"UPDATE users SET is_admin = False WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET is_admin = False WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 10. /admin/
+
+# 3. /admin/
 #async def admin_balance(tgid):
 #--------------------------------------------------------------------------
-# 11. /admin/
+
+# 4. /admin/
 async def admin_ban(tgid):
-    r = await pg.fetch(f"UPDATE users SET is_banned = TRUE WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET is_banned = TRUE WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 12. /admin/
+
+# 5. /admin/
 async def admin_unban(tgid):
-    r = await pg.fetch(f"UPDATE users SET is_banned = FALSE WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET is_banned = FALSE WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 13. /admin/
+
+# 6. /admin/
 async def admin_level1(tgid):
-    r = await pg.fetch(f"UPDATE users SET user_level = '1' WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET user_level = '1' WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 14. /admin/
+
+# 7. /admin/
 async def admin_level2(tgid):
-    r = await pg.fetch(f"UPDATE users SET user_level = '2' WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET user_level = '2' WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 15. /admin/
+
+# 8. /admin/
 async def admin_level3(tgid):
-    r = await pg.fetch(f"UPDATE users SET user_level = '3' WHERE tgid = {tgid};")
+    r = await pg.fetch(
+        "UPDATE users SET user_level = '3' WHERE tgid = $1;", 
+        (tgid,)
+        )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
         return {"Success": True, "result": r}
 #--------------------------------------------------------------------------
-# 16. /admin/
+
+# 9. /admin/
 #async def admin_grep_user(data):
 #--------------------------------------------------------------------------
-# 17. /admin/
+
+# 10. /admin/
 #async def admin_grep_users(data):
-#--------------------------------------------------------------------------
+# 11. /admin/
 async def admin_fetchadmins():
     r = await pg.fetchall(f"SELECT tgid FROM users WHERE is_admin = True")
     if r is None:
@@ -106,65 +167,234 @@ async def admin_fetchadmins():
             ids.append(admin['tgid'])
         return {"Success": True, "result": ids}
 #--------------------------------------------------------------------------
-async def add_server(data): 
+
+#|=============================[End Admin panel]=============================|
+
+#|=============================[XUI panel]=============================|
+
+# 1. /xui/
+async def xui_login(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Выполняет логин в api XUI и возвращает заголовок аутентификации.
+
+    Args:
+        data (Dict[str, Any]): Входные данные, содержащие имя пользователя, пароль и путь полученные при вполнении функции init_server().
+
+    Returns:
+        Dict[str, Any]: Заголовок аутентификации 3x-ui или сообщение об ошибке.
+    """
+
+    username: str = data.get("username")
+    password: str = data.get("passwd")
+    web_path: str = data.get("web_path")
+
+    if not all([username, password, web_path]):
+        logger.error("Missing required fields in input data: %s", data)
+        return {"Success": False, "Reason": "Missing username, password, or web_path"}
+
+    try:
+        # Вызов функции для логина
+        auth_headers = await xui_func.login(username, password, web_path)
+        logger.info("Successfully logged in for user: %s", username)
+        return {"Success": True, "auth_headers": auth_headers}
+    
+    except Exception as ex:
+        logger.error("Failed to log in for user %s: %s", username, str(ex))
+        return {"Success": False, "Reason": f"Login failed: {ex}"}
+#--------------------------------------------------------------------------
+
+# 2. /xui/
+async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Добавляет сервер в БД
+
+    Args:
+        data (Dict[str, Any]): Входные данные, содержащие hostname(ip), порт, имя пользователя и пароль.
+
+    Returns:
+        Dict[str, Any]: True в случае успешного выполнения операции либо False и ошибку.
+    """
+
     hostname = data.get("hostname")
     port = data.get("port")
     username = data.get("username")
     passwd = data.get("passwd")
 
-    check_ifin = await pg.fetch("SELECT hostname FROM servers WHERE hostname = $1", (hostname,))
-    if check_ifin:
-        return {"Success": False, "Reason": "Hostname already in DB"}
-    
+    # Проверка на наличие обязательных данных
+    if not all([hostname, port, username, passwd]):
+        logger.error("Missing required fields in input data: %s", data)
+        return {"Success": False, "Reason": "Missing hostname, port, username or passwd"}
+
     try:
-        r = await pg.execute(
-            "INSERT INTO servers (hostname, port, username, passwd) VALUES ($1, $2, $3, $4)", 
-            (hostname, port, username, passwd)
-        )
-        return {"Success": True, "Inserted": r}
+        # Проверка, существует ли сервер с таким hostname в БД
+        query_check = "SELECT hostname FROM servers WHERE hostname = $1"
+        result_check = await pg.fetch(query_check, (hostname,))
     
+        if result_check:
+            logger.error("Server with hostname %s already exists", hostname)
+            return {"Success": False, "Reason": "Server already exists in the database"}
+        
+        # Вставка нового сервера в БД
+        query_insert = """
+            INSERT INTO servers (hostname, port, username, passwd)
+            VALUES ($1, $2, $3, $4)
+        """
+        values_insert = (hostname, port, username, passwd)
+        result_insert = await pg.execute(query_insert, (*values_insert,))
+
+        if result_insert is None:
+            logger.info("Server %s successfully inserted into the database", hostname)
+            return {"Success": True, "Inserted": result_insert}
+        else:
+            logger.error("Failed to insert server %s into the database", hostname)
+            return {"Success": False, "Reason": "Failed to insert server into the database"}
     except Exception as e:
-        # Логируем конкретную ошибку базы данных
-        print(f"Database insertion error for {hostname}: {str(e)}")
+        # Логирование ошибки с более детализированным сообщением
+        logger.exception("Database insertion error for %s: %s", hostname, str(e))
         return {"Success": False, "Reason": f"Failed to insert values into the database: {str(e)}"}
 #--------------------------------------------------------------------------
-# async def inbound_creation(country): 
-async def init_server(data):
-    hostname = data.get("hostname")
-    r = await pg.fetch("SELECT hostname, port, username, passwd FROM servers WHERE hostname = $1", (hostname,))
 
-    if r is None:
-        {"Success": False, "Reason": "Can't insert values into table"}
-    else:
-        geolocation = await xui_func.geo_ip(hostname)
+# 3. /xui/
+async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
+    """
+    Инициализация сервера по предоставленным данным.
 
-        result = await ssh_func.ssh_reg(r["hostname"], r["port"], r["username"], r["passwd"])
-        creds_upload = await pg.fetch(
-            "UPDATE servers SET country = $1, web_user = $2, web_pass = $3, web_path = $4, is_alive = $5", 
-            (geolocation, result["username"], result["password"], "http://" + hostname + "/" + result["webpath"], True)
+    Args:
+        data (Dict[str, Any]): Входные данные с информацией о сервере.
+
+    Returns:
+        Dict[str, Union[bool, str, Any]]: Результат операции (успех или ошибка).
+    """
+
+    hostname: str = data.get("hostname")
+
+    if not hostname:
+        logger.error("Hostname is missing from the input data: %s", data)
+        return {"Success": False, "Reason": "Missing hostname in input data"}
+    
+    try:
+        # Запрос данных о сервере из БД
+        server_info = await pg.fetch(
+            "SELECT hostname, port, username, passwd FROM servers WHERE hostname = $1", 
+            (hostname,)
         )
-        return {"Success": True, "result": creds_upload}
+        
+        if not server_info:
+            logger.error("No server found with hostname: %s", hostname)
+            return {"Success": False, "Reason": "Server not found in database"}
+
+        # Получение геолокации через geoip
+        try:
+            geolocation = await xui_func.geo_ip(hostname)
+        except Exception as ex:
+            logger.warning("Failed to get geolocation for %s: %s. Defaulting to 'RU'.", hostname, str(ex))
+            geolocation = "RU"
+
+        # Установка x-ui через импорт файла установщика через scp + ssh
+        try:
+            ssh_result = await ssh_func.ssh_reg(
+                server_info["hostname"], 
+                server_info["port"], 
+                server_info["username"], 
+                server_info["passwd"]
+            )
+        except Exception as ssh_ex:
+            logger.error("SSH registration failed for %s: %s", hostname, str(ssh_ex))
+            return {"Success": False, "Reason": f"SSH registration failed: {ssh_ex}"}
+
+        # Обновление данных в БД
+        update_query = """
+            UPDATE servers 
+            SET country = $1, web_user = $2, web_pass = $3, web_path = $4, is_alive = $5
+            WHERE hostname = $6
+        """
+
+        update_values = (
+            geolocation, 
+            ssh_result["username"], 
+            ssh_result["password"], 
+            f"http://{hostname}:2053/{ssh_result['webpath']}", 
+            True, 
+            hostname
+        )
+        
+        creds_upload = await pg.fetch(update_query, update_values)
+
+        if creds_upload:
+            logger.info("Server %s successfully initialized and updated", hostname)
+            return {"Success": True, "result": creds_upload}
+        else:
+            logger.error("Failed to update server credentials for %s", hostname)
+            return {"Success": False, "Reason": "Failed to update server credentials"}
+
+    except Exception as ex:
+        logger.exception("Unexpected error during server initialization for %s", hostname)
+        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
 #-------------------------------------------------------------------------- 
-async def inbound_creation(data): 
-    username = data.get("username")
-    passwd = data.get("passwd")
-    webpath = data.get("webpath")
 
-    auth_headers = await xui_func.login(username, passwd, webpath)
-    r = await xui_func.add_inbound(auth_headers, webpath)
-    if r is None:
-        {"Success": False, "Reason": "Can't create config"}
-    else:
-        return {"Success": True, "result": r}
-#--------------------------------------------------------------------------
-async def redis_get_all(): 
-    r = await redis_func.redis_get_all()
-    for key, value in r.items():
-        print(key, " : ", value)
-    if r is None:
-        {"Success": False, "Reason": "Can't create config"}
-    else:
-        return {"Success": True, "result": r}
+# 4. /xui/
+async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
+    """
+    Создание нового входящего соединения и запись его в базу данных.
+
+    Args:
+        data (Dict[str, Any]): Входные данные, содержащие информацию о пользователе и хосте.
+
+    Returns:
+        Dict[str, Union[bool, str, Any]]: Результат операции (успех или ошибка на все случаи жизни).
+    """
+    username: str = data.get("web_user")
+    password: str = data.get("web_pass")
+    web_path: str = data.get("web_path")
+    hostname: str = data.get("hostname")
+
+    if not all([username, password, web_path, hostname]):
+        logger.error("Missing required fields in data: %s", data)
+        return {"Success": False, "Reason": "Missing required fields"}
+    
+    
+    try:
+        # Авторизация
+        auth_headers = await xui_func.login(username, password, web_path)
+
+        # Создание конфига
+        inbound, config = await xui_func.add_inbound(auth_headers, web_path, hostname)
+
+        # Запись в БД
+        query = """
+            INSERT INTO configs (tg_user, inbound, users, config)
+            VALUES ($1, $2, $3, $4)
+        """
+
+        values = ("test", inbound["remark"], inbound["email"], config)
+
+        result = await pg.fetch(query, values)
+        
+        # Проверка результата и перехват ошибок
+
+        if result is None:
+            logger.info("Inbound creation successful for %s", inbound["remark"])
+            return {"Success": True, "result": result}
+        
+        logger.error("Insert operation returned None for data: %s", values)
+        return {"Success": False, "Reason": "Insert operation failed, returned None"}
+    
+    except ConnectionError as conn_ex:
+        logger.error("Connection error while creating config: %s", str(conn_ex))
+        return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
+    
+    except TimeoutError as timeout_ex:
+        logger.warning("Timeout during config creation: %s", str(timeout_ex))
+        return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
+    
+    except ValueError as val_ex:
+        logger.error("Value error during inbound creation: %s", str(val_ex))
+        return {"Success": False, "Reason": f"Value error: {val_ex}"}
+    
+    except Exception as ex:
+        logger.exception("Unexpected error during inbound creation")
+        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
 #--------------------------------------------------------------------------
 
+#|=============================[End XUI panel]=============================|
 

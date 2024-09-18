@@ -1,31 +1,35 @@
-from fastapi import Depends, HTTPException
-from fastapi.security import APIKeyHeader
-from fastapi_offline import FastAPIOffline # from fastapi import FastAPI
-from enum import Enum
-from redis import asyncio as aioredis
 import json
 import httpx
 import asyncpg
 import os
+import logging
+from enum import Enum
+from redis import asyncio as aioredis
+from fastapi import Depends, HTTPException
+from fastapi.security import APIKeyHeader
+from fastapi_offline import FastAPIOffline # from fastapi import FastAPI
+from fastapi import FastAPI
+from typing import Any, Dict, List, Tuple, Optional
 
-debug = os.getenv('FASTAPI_DEBUG', 'False')
-apikey = os.getenv('FASTAPI_KEY', '')
-pg_conn = os.getenv('POSTGRES_DSN', '')
-red_conn = os.getenv('REDIS_DSN')
-red_ttl = os.getenv('REDIS_EXPIRE')
+debug: bool = os.getenv('FASTAPI_DEBUG', 'False')
+apikey: str = os.getenv('FASTAPI_KEY', '')
+pg_conn: str = os.getenv('POSTGRES_DSN', '')
+red_conn: str = os.getenv('REDIS_DSN')
+red_ttl: int = os.getenv('REDIS_EXPIRE')
 
 # VARS #
-debug = debug               # TURN OFF DEBUG ON PROD !!!
-SECRET_VALUE = apikey       # CHANGE ME ON PROD !!!
-SECRET_HEADER = 'X-API-Key'
+debug: bool = debug               # TURN OFF DEBUG ON PROD !!!
+SECRET_VALUE: str = apikey       # CHANGE ME ON PROD !!!
+SECRET_HEADER: str = 'X-API-Key'
 
 
-docs_title = 'Xui API'
-docs_description = 'Не лезь, убьёт!'
+docs_title: str = 'Xui API'
+docs_description: str = 'Не лезь, убьёт!'
 
 class Tags(Enum):
     user = "User"
     admin = "Admin"
+    x_ui = "X-ui"
 
 
 def auth401():
@@ -38,21 +42,35 @@ def auth401():
     auth_dep = [Depends(api_key_auth)]
     return auth_dep
 
-def api_init():
+def api_init(debug: bool, docs_title: str, docs_description: str) -> FastAPI:
+    """
+    Инициализирует и возвращает экземпляр FastAPI с учетом режима отладки.
+
+    Args:
+        debug (bool): Флаг, указывающий, находится ли приложение в режиме отладки.
+        docs_title (str): Заголовок документации API.
+        docs_description (str): Описание документации API.
+
+    Returns:
+        FastAPI: Экземпляр FastAPI с соответствующими настройками.
+    """
+
     if debug:
-        app = FastAPIOffline(
-            #dependencies = auth401(),
-            title = docs_title,
-            description = docs_description,
-            )
-    else:
-        app = FastAPIOffline(
-            docs_url = None, # Disable docs (Swagger UI)
-            redoc_url = None, # Disable redoc
-            dependencie = auth401(),
-            title = docs_title,
-            description = docs_description,
+        app = FastAPI(
+            title=docs_title,
+            description=docs_description
         )
+        logging.info("FastAPI app initialized in debug mode.")
+    else:
+        app = FastAPI(
+            docs_url=None,  # Отключить Swagger UI
+            redoc_url=None,  # Отключить Redoc
+            dependencies=[auth401()],  # Обратите внимание на правильное имя параметра
+            title=docs_title,
+            description=docs_description
+        )
+        logging.info("FastAPI app initialized in production mode.")
+
     return app
 
 # asyncpg wrapper
@@ -69,6 +87,7 @@ class PostgreSQL():
     async def disconnect(self):
         if self.pool is not None:
             await self.pool.close()
+            self.pool = None
 
     async def execute(self, query: str, args = ()):
         await self.connect()
@@ -77,18 +96,15 @@ class PostgreSQL():
             async with connection.transaction():
                 await connection.execute(query, *args)
 
-    async def fetch(self, query: str, args = (), count: int = 1, cache: bool = False):
+    async def fetch(self, query: str, *args: Any, count: int = 1, cache: bool = False):
         await self.connect()
 
         async with self.pool.acquire() as connection:
             async with connection.transaction():
-                cursor = await connection.cursor(query, *args)
-                response = await cursor.fetch(count)
-
-                if count == 1 and len(response) > 0:
-                    return dict(response[0])
-
-                return response if len(response) > 0 else None
+                async for record in connection.cursor(query, *args):
+                    if count == 1:
+                        return dict(record)
+                return None
 
     async def fetchall(self, query: str, args = ()):
         await self.connect()

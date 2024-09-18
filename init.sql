@@ -31,7 +31,8 @@ CREATE TABLE configs (
     id          serial PRIMARY KEY,
     tg_user     TEXT,
     inbound     TEXT,
-    users        TEXT,
+    users       TEXT,
+    config     TEXT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

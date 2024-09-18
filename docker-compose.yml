@@ -25,6 +25,7 @@ services:
             context: ./web
         environment:
             REDIS_DSN: ${REDIS_DSN}
+            REDIS_EXPIRE: ${REDIS_EXPIRE}
             FASTAPI_KEY: ${FASTAPI_KEY}
         ports:
             - "80:80"

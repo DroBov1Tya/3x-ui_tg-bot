@@ -8,3 +8,4 @@ pyqrcode
 pypng
 paramiko
 redis
+logging
