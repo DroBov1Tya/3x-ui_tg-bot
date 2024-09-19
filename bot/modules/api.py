@@ -22,3 +22,48 @@ async def create_user(message):
 async def user_info(tgid): #DONE
     r = await http(f"http://api:8000/user/{tgid}", headers=headers)
     return r
+#--------------------------------------------------------------------------
+async def is_admin(tgid):
+    r = await http(f"http://api:8000/admin/isadmin/{tgid}", headers=headers, method="GET")
+    return r
+#--------------------------------------------------------------------------
+async def admin_set(tgid):
+    r = await http(f"http://api:8000/admin/set/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_unset(tgid):
+    r = await http(f"http://api:8000/admin/unset/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_balance(tgid):
+    r = await http(f"http://api:8000/admin/balance/", method='POST', data=d)
+    return r
+#--------------------------------------------------------------------------
+async def admin_ban(tgid):
+    r = await http(f"http://api:8000/admin/ban/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_unban(tgid):
+    r = await http(f"http://api:8000/admin/unban/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_level1(tgid):
+    r = await http(f"http://api:8000/admin/level1/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_level2(tgid):
+    r = await http(f"http://api:8000/admin/level2/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_level3(tgid):
+    r = await http(f"http://api:8000/admin/level3/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_grep_users():
+    r = await http(f"http://api:8000/admin/grepusers", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def admin_fetchadmins():
+    r = await http(f"http://api:8000/admin/fetchadmins", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------

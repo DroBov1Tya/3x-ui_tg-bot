@@ -1,14 +1,14 @@
 import config
 import logging
 import asyncio
+import sys
 from modules import handlers
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from modules.env import env
 
 
-TOKEN = env.bot_token
+TOKEN = config.bot_token
 dp = Dispatcher()
 
 

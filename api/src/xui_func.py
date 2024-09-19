@@ -293,13 +293,13 @@ async def add_inbound(auth_headers: Dict[str, str], webpath: str, hostname: str)
 
     # Создание конфига и добавление данных
     try:
-        r = await generator_func.create_config(inbound_data)
+        config, qr_data = await generator_func.create_config(inbound_data)
         await add_inbound_data(inbound_data, webpath)
     except Exception as e:
         logger.error("Ошибка при создании конфигурации или добавлении данных: %s", e)
         raise
 
-    return inbound_data, r
+    return inbound_data, config, qr_data
 #--------------------------------------------------------------------------
 #|=============================[Add Inbound Init]=============================|
 async def geo_ip(hostname):

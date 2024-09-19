@@ -1,25 +1,11 @@
 from modules import BTN, api
 
 #|=============================[Menu]=============================|
-async def url_menu_btn(tgid):
+async def config_menu_btn(tgid):
     text, markup = '''
-<b>🛜 Url menu</b>
-Поиск уязвимостей и утечек по url
-''', BTN.url_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def ip_menu_btn(tgid):
-    text, markup = '''
-<b>🧑‍💻 Ip menu</b>
-Пробив по ip
-''', BTN.ip_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def hardware_menu_btn(tgid):
-    text, markup = '''
-<b>💻 Hardware</b>
-Поиск информации по устройству
-''', BTN.hardware_menu(tgid)
+<b>🏴 Выбор стран 🏴</b>
+Выберете один из предложенных вариантов
+''', BTN.config_menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
 async def account_menu_btn(tgid):
@@ -28,102 +14,7 @@ async def account_menu_btn(tgid):
 ''', BTN.account_menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-#Событие при нажатии на Subdomains
-async def subdomains_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🌎 Subdomains</b> - поиск поддоменов у сайта
-(Работает только с url, ip не указывать)
-''', BTN.subdomains((tgid))
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на Fuzzing
-async def fuzzing_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🦴 Fuzzing</b> - Скан интересных мест на сайте: файлы, директории итд
-|BETA - в таргет нужно указать сайт по примеру example.com без 
-|http:// и подобного.
-|Если нужен угубленный поиск в уже найденных директориях то в 
-|таргет нужно указать новый адресс
-|Как пример если была найдена директория api example.com/api
-''', BTN.fuzzing(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на Nmap
-async def nmap_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🪬 Nmap</b> - Скан открытых портов и их служб у ip адресса 
-''', BTN.nmap(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на Saved results
-async def saved_results_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>Saved results</b> [В разработке]
-''', BTN.saved_results(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на Ip lookup
-async def ip_lookup_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🔮Ip lookup</b> - Проверка локации и хостинга ip адресса
-''', BTN.ip_lookup(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на temp mail
-async def temp_mail_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>✉️ Temp mail</b> - Одноразовая почта
-''', BTN.temp_mail(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#Событие при нажатии на mac lookup
-async def mac_lookup_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🗿 Mac lookup</b> - Пробив вендора по мак адрессу
-''', BTN.mac_lookup(tgid)
-    return text, markup
-#--------------------------------------------------------------------------\
-#Событие при нажатии на what cms
-async def what_cms_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🖥️ What cms</b> - Проверка бэкэнда сайта
-''', BTN.what_cms(tgid)
-    return text, markup
-#--------------------------------------------------------------------------\
-#Событие при нажатии на what cms
-async def imei_lookup_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>📱 Imei lookup</b>- Проверка imei
-''', BTN.imei_lookup(tgid)
-    return text, markup
-#--------------------------------------------------------------------------\
-async def checkhost_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🩺 Checkhost</b> - Проверяет жив хост или нет, 
-можно указать как ip так и домен
-''', BTN.checkhost(tgid)
-    return text, markup
-#--------------------------------------------------------------------------\
-async def dns_btn(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>🎙️ DNS records</b> - Поиск записей в DNS серверах,
-может найти хосты относящиеся к цели,
-но не имеющие в названии искаемого домена
-<b>Хороший пример</b>: <code>tesla.com</code>
-''', BTN.dns(tgid)
-    return text, markup
-#--------------------------------------------------------------------------\
+
 #|===========================[End menu]===========================|
 
 #|=============================[admins panel]=============================|
@@ -271,27 +162,21 @@ async def start_cmd(message):
 async def menu_cmd(message):
     tgid = message.chat.id
     text, markup = f'''
-<b>DuckSayCrack 🦆</b>
+<b>Spoof skuf bot 🏴‍☠️</b>
 
 <b>Ваш tgid:</b> <code>{tgid}</code>
 <b>Возможности:</b>
-<i>Поиск поддоменов и уязвимостей сайтов
-Поиск информации по ip адрессу включая открытые порты
-Создание одноразовых почтовых ящиков
-Поиск информации по железу (Мак адресс, имей)</i>
-
-Для указания цели достаточно просто отправить сообщение
+<i>Создание впн конфигов нажатием одной кнопки</i>
 
 <b>Beta 1.0.2</b>
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-#Событие при нажатии на Save result
-async def save_result_btn(message):
+async def test_country_btn(message):
     tgid = message.chat.id
-    text, markup = '''
-Save result [В разработке]
-''', BTN.save_result(tgid)
+    text, image = await api.admin_level3()
+    text, markup = f"{text}", BTN.admin(tgid)
     return text, markup
+
 #|===========================[Endcomands]===========================|
 

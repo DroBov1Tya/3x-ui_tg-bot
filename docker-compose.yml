@@ -1,22 +1,23 @@
 services:
 
 
-    # bot:
-    #     hostname: bot
-    #     container_name: bot
-    #     build: 
-    #         context: ./bot
-    #     environment:
-    #         BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
-    #         BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
-    #         REDIS_DSN: ${REDIS_DSN}
-    #         FASTAPI_KEY: ${FASTAPI_KEY}
-    #     restart: always
-    #     depends_on:
-    #         - redis    
-    #         - psql
-    #     networks:
-    #         - 3xui_network
+    bot:
+        hostname: bot
+        container_name: bot
+        build: 
+            context: ./bot
+        environment:
+            BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
+            BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
+            REDIS_DSN: ${REDIS_DSN}
+            FASTAPI_KEY: ${FASTAPI_KEY}
+            ADMINS: ${ADMINS}
+        restart: always
+        depends_on:
+            - redis    
+            - psql
+        networks:
+            - 3xui_network
 
     web:
         hostname: web

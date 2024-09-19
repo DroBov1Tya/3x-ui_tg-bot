@@ -33,9 +33,9 @@ class ex:
 #--------------------------------------------------------------------------
     inbound_creation = {
         "hostname" : "192.168.19.19",
-        "web_user" : "fpjnIuiv",
-        "web_pass" : "Wk30Cju5",
-        "web_path" : "http://192.168.19.19:2053/KddCy91vlV"
+        "web_user" : "zcgcx6ni",
+        "web_pass" : "T4QZ6kHp",
+        "web_path" : "http://192.168.19.19:2053/JdiUfuzGnk"
     }
 #--------------------------------------------------------------------------
 

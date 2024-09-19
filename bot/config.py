@@ -1,14 +1,16 @@
 import httpx
-import env
+import os
 
-#|=============================[Api keys]=============================|
-if env.TGBOT_DEBUG:
-    bot_token = env.BOT_TOKEN_TEST
+admins: list = os.getenv("ADMINS")
+#|===========================[TG bot init]===========================|
+if os.getenv("BOT_DEBUG"):
+    bot_token: str = os.getenv("BOT_TOKEN_DEV")
 else:
-    bot_token = env.BOT_TOKEN
+    bot_token: str = os.getenv("BOT_TOKEN_PROD")
 #|===========================[End TG bot init]===========================|
-fastapi_key = env.FASTAPI_KEY
-fastapi_url = "http://api:8000/"
+#|=============================[Api keys]=============================|
+fastapi_key: str = os.getenv("FASTAPI_KEY")
+fastapi_url: str = "http://api:8000/"
 #|===========================[End Api keys]===========================|
 
 async def http(url: str, method: str = "GET", headers=None, data = None, files = None):

@@ -2,6 +2,8 @@ import api
 from fastapi import Body, UploadFile
 from config import api_init, Tags
 from examples import ex
+from fastapi.responses import FileResponse
+import base64
 # pre-config #
 app = api_init()
 
@@ -82,21 +84,26 @@ async def add_server(dict = Body(example=ex.add_server)):
     r = await api.add_server(dict)
     return r
 #--------------------------------------------------------------------------
-@app.post("/init_server", tags=[Tags.x_ui], summary="server initialization")
+@app.post("/xui/init_server", tags=[Tags.x_ui], summary="server initialization")
 async def init_server(dict = Body(example=ex.init_server)):
     r = await api.init_server(dict)
     return r
 #--------------------------------------------------------------------------
-@app.post("/xui_login", tags=[Tags.x_ui], summary="xui login")
+@app.post("/xui/xui_login", tags=[Tags.x_ui], summary="xui login")
 async def xui_login(json = Body(example=ex.xui_login)):
     r = await api.xui_login(json)
     return r
 #--------------------------------------------------------------------------
-@app.post("/inbound_creation", tags=[Tags.x_ui], summary="inbound creation")
+@app.post("/xui/inbound_creation", tags=[Tags.x_ui], summary="inbound creation")
 async def inbound_creation(json = Body(example=ex.inbound_creation)):
     print("Inbound creation handled")
     r = await api.inbound_creation(json)
     return r
+    # qr = base64.b64decode(r["qr_data"])
+    # with open("./qr_code/qr_image.png", "rb") as image_file:
+    #     image_file.write(qr)
+    #     qr_file = FileResponse(f"./qr_code/qr_image.png", media_type='application/octet-stream', filename=f"qr_image.png")
+    #     return qr_file
 #--------------------------------------------------------------------------
 @app.get("/redis_get_all", tags=[Tags.x_ui], summary="inbound creation")
 async def redis_get_all():

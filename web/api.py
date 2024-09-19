@@ -3,10 +3,10 @@ from config import http
 
 async def send_data(hostname, passwd):
     j = {
-        "hostname" : hostname,
-        "port" : "22",
-        "username" : "root",
-        "passwd" : passwd
+        "hostname" : str(hostname),
+        "port" : str("22"),
+        "username" : str("root"),
+        "passwd" : str(passwd)
     }
 
     r = await http(method="POST", url = "http://api:8000/add_server", json = j)

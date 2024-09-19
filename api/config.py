@@ -7,7 +7,7 @@ from enum import Enum
 from redis import asyncio as aioredis
 from fastapi import Depends, HTTPException
 from fastapi.security import APIKeyHeader
-from fastapi_offline import FastAPIOffline # from fastapi import FastAPI
+from fastapi_offline import FastAPIOffline
 from fastapi import FastAPI
 from typing import Any, Dict, List, Tuple, Optional
 
@@ -42,7 +42,7 @@ def auth401():
     auth_dep = [Depends(api_key_auth)]
     return auth_dep
 
-def api_init(debug: bool, docs_title: str, docs_description: str) -> FastAPI:
+def api_init():
     """
     Инициализирует и возвращает экземпляр FastAPI с учетом режима отладки.
 

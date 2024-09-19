@@ -13,21 +13,31 @@ logger = logging.getLogger(__name__)
 
 #--------------------------------------------------------------------------
 # 1. /user/
-async def user_create(data): # DONE
+async def user_create(data: Dict[str, Any]) -> Dict[str, Any]: # DONE
+    
     userinfo = data['user']
-
     tgid = userinfo['tgid']
     nickname = userinfo['nickname']
     first_name = userinfo['first_name']
     last_name = userinfo['last_name']
 
-    r = await pg.fetch(
-        '''INSERT INTO users 
+
+    query = """
+        INSERT INTO users 
         (tgid, nickname, first_name, last_name, is_banned) 
         VALUES ($1, '$2', '$3', '$4', True) 
-        ON CONFLICT (tgid) DO NOTHING RETURNING true;''',
-        (tgid, nickname, first_name, last_name)
-        )
+        ON CONFLICT (tgid) DO NOTHING RETURNING true;
+    """
+    values = [
+        userinfo,
+        tgid,
+        nickname,
+        first_name,
+        last_name
+    ]
+    
+    r = await pg.fetch(query,*values)
+
     if r is None:
         return {"Success": False, "Reason": "User already exists"}
     else:
@@ -35,11 +45,13 @@ async def user_create(data): # DONE
 #--------------------------------------------------------------------------
 
 # 2. /user/{tgid}
-async def user_info(tgid): #DONE
-    r = await pg.fetch(
-        "SELECT * FROM users WHERE tgid = $1;", 
-        (tgid,)
-        )
+async def user_info(tgid: str) -> Dict[str, Any]: #DONE
+    query = """
+        SELECT * FROM users WHERE tgid = $1;
+    """
+    
+    r = await pg.fetch(query,tgid)
+
     if r is None:
         return {"Success": False, "Reason": "User not found"}
     else:
@@ -47,11 +59,13 @@ async def user_info(tgid): #DONE
 #--------------------------------------------------------------------------
 
 # 3. /user/isadmin
-async def is_admin(tgid):
-    r = await pg.fetch(
-        "SELECT is_admin FROM users WHERE tgid = $1;", 
-        (tgid,)
-        )
+async def is_admin(tgid: str) -> Dict[str, Any]:
+    query = """
+        SELECT is_admin FROM users WHERE tgid = $1;
+    """
+
+    r = await pg.fetch(query, tgid)
+
     if r['is_admin'] is False:
         return {"Success": False, "Reason": "User not admin"}
     else:
@@ -63,11 +77,14 @@ async def is_admin(tgid):
 #|=============================[Admin panel]=============================|
 
 # 1. /admin/
-async def admin_set(tgid):
-    r = await pg.fetch(
-        "UPDATE users SET is_admin = TRUE WHERE tgid = $1;", 
-        (tgid,)
-        )
+async def admin_set(tgid: str) -> Dict[str, Any]:
+
+    query = """
+        UPDATE users SET is_admin = TRUE WHERE tgid = $1;
+    """
+
+    r = await pg.fetch(query, tgid)
+
     if not r['is_admin']:
         return {"Success": False, "Reason": "User not admin"}
     else:
@@ -75,11 +92,13 @@ async def admin_set(tgid):
 #--------------------------------------------------------------------------
 
 # 2. /admin/
-async def admin_unset(tgid):
-    r = await pg.fetch(
-        "UPDATE users SET is_admin = False WHERE tgid = $1;", 
-        (tgid,)
-        )
+async def admin_unset(tgid: str) -> Dict[str, Any]:
+    query = """
+        UPDATE users SET is_admin = False WHERE tgid = $1;
+    """
+
+    r = await pg.fetch(query, tgid)
+
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -91,11 +110,15 @@ async def admin_unset(tgid):
 #--------------------------------------------------------------------------
 
 # 4. /admin/
-async def admin_ban(tgid):
+async def admin_ban(tgid: str) -> Dict[str, Any]:
+
+    query = """
+        
+    """
     r = await pg.fetch(
         "UPDATE users SET is_banned = TRUE WHERE tgid = $1;", 
-        (tgid,)
-        )
+        tgid
+    )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -103,11 +126,11 @@ async def admin_ban(tgid):
 #--------------------------------------------------------------------------
 
 # 5. /admin/
-async def admin_unban(tgid):
+async def admin_unban(tgid: str) -> Dict[str, Any]:
     r = await pg.fetch(
         "UPDATE users SET is_banned = FALSE WHERE tgid = $1;", 
-        (tgid,)
-        )
+        tgid
+    )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -115,11 +138,11 @@ async def admin_unban(tgid):
 #--------------------------------------------------------------------------
 
 # 6. /admin/
-async def admin_level1(tgid):
+async def admin_level1(tgid: str) -> Dict[str, Any]:
     r = await pg.fetch(
         "UPDATE users SET user_level = '1' WHERE tgid = $1;", 
-        (tgid,)
-        )
+        tgid
+    )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -127,11 +150,11 @@ async def admin_level1(tgid):
 #--------------------------------------------------------------------------
 
 # 7. /admin/
-async def admin_level2(tgid):
+async def admin_level2(tgid: str) -> Dict[str, Any]:
     r = await pg.fetch(
         "UPDATE users SET user_level = '2' WHERE tgid = $1;", 
-        (tgid,)
-        )
+        tgid
+    )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -139,11 +162,11 @@ async def admin_level2(tgid):
 #--------------------------------------------------------------------------
 
 # 8. /admin/
-async def admin_level3(tgid):
+async def admin_level3(tgid: str) -> Dict[str, Any]:
     r = await pg.fetch(
         "UPDATE users SET user_level = '3' WHERE tgid = $1;", 
-        (tgid,)
-        )
+        tgid
+    )
     if r is None:
         {"Success": False, "Reason": "User not found"}
     else:
@@ -215,11 +238,10 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: True в случае успешного выполнения операции либо False и ошибку.
     """
 
-    hostname = data.get("hostname")
-    port = data.get("port")
-    username = data.get("username")
-    passwd = data.get("passwd")
-
+    hostname: str = data.get("hostname")
+    port: str = data.get("port")
+    username: str = data.get("username")
+    passwd: str = data.get("passwd")
     # Проверка на наличие обязательных данных
     if not all([hostname, port, username, passwd]):
         logger.error("Missing required fields in input data: %s", data)
@@ -228,7 +250,7 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         # Проверка, существует ли сервер с таким hostname в БД
         query_check = "SELECT hostname FROM servers WHERE hostname = $1"
-        result_check = await pg.fetch(query_check, (hostname,))
+        result_check = await pg.fetch(query_check, hostname)
     
         if result_check:
             logger.error("Server with hostname %s already exists", hostname)
@@ -276,7 +298,7 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
         # Запрос данных о сервере из БД
         server_info = await pg.fetch(
             "SELECT hostname, port, username, passwd FROM servers WHERE hostname = $1", 
-            (hostname,)
+            hostname
         )
         
         if not server_info:
@@ -318,9 +340,9 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
             hostname
         )
         
-        creds_upload = await pg.fetch(update_query, update_values)
+        creds_upload = await pg.fetch(update_query, *update_values)
 
-        if creds_upload:
+        if creds_upload is None:
             logger.info("Server %s successfully initialized and updated", hostname)
             return {"Success": True, "result": creds_upload}
         else:
@@ -335,7 +357,7 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
 # 4. /xui/
 async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
-    Создание нового входящего соединения и запись его в базу данных.
+    Создание нового впн клиента и запись его в базу данных.
 
     Args:
         data (Dict[str, Any]): Входные данные, содержащие информацию о пользователе и хосте.
@@ -358,7 +380,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         auth_headers = await xui_func.login(username, password, web_path)
 
         # Создание конфига
-        inbound, config = await xui_func.add_inbound(auth_headers, web_path, hostname)
+        inbound, config, qr_data = await xui_func.add_inbound(auth_headers, web_path, hostname)
 
         # Запись в БД
         query = """
@@ -368,13 +390,13 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
 
         values = ("test", inbound["remark"], inbound["email"], config)
 
-        result = await pg.fetch(query, values)
+        result = await pg.fetch(query, *values)
         
         # Проверка результата и перехват ошибок
 
         if result is None:
             logger.info("Inbound creation successful for %s", inbound["remark"])
-            return {"Success": True, "result": result}
+            return {"Success": True, "result": config, "qr_data" : qr_data}
         
         logger.error("Insert operation returned None for data: %s", values)
         return {"Success": False, "Reason": "Insert operation failed, returned None"}

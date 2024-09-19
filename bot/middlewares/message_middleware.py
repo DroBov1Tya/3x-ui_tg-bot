@@ -1,8 +1,8 @@
 from aiogram import BaseMiddleware
 from typing import Callable, Awaitable, Dict, Any
 from aiogram.types import Update
-from env import ADMINS
-from modules import logic, api, BTN
+from config import admins
+from modules import bot_logic, api, BTN
 
 async def get_user_info(tgid) -> dict:
     r = await api.user_info(tgid)
