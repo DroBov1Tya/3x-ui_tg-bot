@@ -1,11 +1,13 @@
+import base64
 from modules import BTN, api
 
 #|=============================[Menu]=============================|
 async def config_menu_btn(tgid):
+    servers = await api.servers_count()
     text, markup = '''
 <b>🏴 Выбор стран 🏴</b>
 Выберете один из предложенных вариантов
-''', BTN.config_menu(tgid)
+''', BTN.config_menu(tgid, servers)
     return text, markup
 #--------------------------------------------------------------------------
 async def account_menu_btn(tgid):
@@ -172,11 +174,16 @@ async def menu_cmd(message):
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def test_country_btn(message):
-    tgid = message.chat.id
-    text, image = await api.admin_level3()
-    text, markup = f"{text}", BTN.admin(tgid)
-    return text, markup
+async def test_country_btn(tgid, hostname):
+    data = await api.test_country(hostname)
+    config = data["config"]
+    qr = base64.b64decode(r["qr_data"])
+    with open("./qr_code/qr_image.png", "rb") as image_file:
+        image_file.write(qr)
+        qr_file = FileResponse(f"./qr_code/qr_image.png", media_type='application/octet-stream', filename=f"qr_image.png")
+        return qr_file
 
+    text, markup = f"{config}", BTN.menu(tgid)
+    return text, markup
 #|===========================[Endcomands]===========================|
 

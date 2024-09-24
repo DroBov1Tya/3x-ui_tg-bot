@@ -113,7 +113,7 @@ async def admin_unset(tgid: str) -> Dict[str, Any]:
 async def admin_ban(tgid: str) -> Dict[str, Any]:
 
     query = """
-        
+
     """
     r = await pg.fetch(
         "UPDATE users SET is_banned = TRUE WHERE tgid = $1;", 
@@ -385,7 +385,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         # Запись в БД
         query = """
             INSERT INTO configs (tg_user, inbound, users, config)
-            VALUES ($1, $2, $3, $4)
+            VALUES ($1, $2, $3, $4);
         """
 
         values = ("test", inbound["remark"], inbound["email"], config)
@@ -396,7 +396,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
 
         if result is None:
             logger.info("Inbound creation successful for %s", inbound["remark"])
-            return {"Success": True, "result": config, "qr_data" : qr_data}
+            return {"Success": True, "result": result, "config": config, "qr_data": qr_data}
         
         logger.error("Insert operation returned None for data: %s", values)
         return {"Success": False, "Reason": "Insert operation failed, returned None"}
@@ -417,6 +417,71 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         logger.exception("Unexpected error during inbound creation")
         return {"Success": False, "Reason": f"Unexpected error: {ex}"}
 #--------------------------------------------------------------------------
+async def servers_count() -> Dict[str, Union[bool, str, Any]] :
+    """
+    Забирает из БД информацию о активных серверов для динамического вывода кнопок в бота
 
+    Args:
+        -
+
+    Returns:
+        Dict[str, Union[bool, str, Any]]: Результат операции (успех или ошибка).
+    """
+
+    query = '''
+        SELECT * FROM servers
+        WHERE is_alive = true;
+    '''
+    try:
+        result = await pg.fetchall(query)
+        if result:
+            logger.info("Select successful for %s", query)
+            return {"Success": True, "result" : result}
+        
+    except ConnectionError as conn_ex:
+        logger.error("Connection error while creating config: %s", str(conn_ex))
+        return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
+    
+    except TimeoutError as timeout_ex:
+        logger.warning("Timeout during select: %s", str(timeout_ex))
+        return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
+    
+    except Exception as ex:
+        logger.exception("Unexpected error during select")
+        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+#--------------------------------------------------------------------------
+async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
+    """
+    Забирает из БД информацию о одном конкретном сервере
+
+    Args:
+        -
+
+    Returns:
+        Dict[str, Union[bool, str, Any]]: Результат операции (успех или ошибка).
+    """
+
+    query = '''
+        SELECT * FROM servers
+        WHERE hostname = $1;
+    '''
+    try:
+        result = await pg.fetch(query, hostname)
+        if result:
+            logger.info("Select successful for %s", query)
+            return {"Success": True, "result" : result}
+        
+    except ConnectionError as conn_ex:
+        logger.error("Connection error while creating config: %s", str(conn_ex))
+        return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
+    
+    except TimeoutError as timeout_ex:
+        logger.warning("Timeout during select: %s", str(timeout_ex))
+        return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
+    
+    except Exception as ex:
+        logger.exception("Unexpected error during select")
+        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+#--------------------------------------------------------------------------
 #|=============================[End XUI panel]=============================|
 

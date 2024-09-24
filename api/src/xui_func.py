@@ -309,7 +309,7 @@ async def geo_ip(hostname):
 
         # Парсим ответ и проверяем наличие ключа 'country'
         response_json = r.json()
-        country = response_json.get("country")
+        country = response_json.get("countryCode")
     
         if country:
             return str(country)

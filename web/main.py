@@ -57,7 +57,7 @@ async def main(page: Page):
                     # Проверка успешного добавления
                     if response_json.get("Success") == True:
                         try:
-                            await http(method="POST", url="http://api:8000/init_server", json={"hostname": hostname})
+                            await http(method="POST", url="http://api:8000/xui/init_server", json={"hostname": hostname})
                             result_display.controls.append(Text(f"Сервер {hostname} успешно добавлен!"))
                         except Exception as e:
                             result_display.controls.append(Text(f"Ошибка при инициализации сервера {hostname}: {e}"))

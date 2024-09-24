@@ -1,6 +1,7 @@
 from aiogram import Bot, types, F, Dispatcher, Router
 from modules import bot_logic, api
 from aiogram.filters.command import Command
+from aiogram.types import InputFile
 from middlewares.message_middleware import message_middleware
 from middlewares.callback_middleware import callback_middleware
 from middlewares.inline_middleware import inline_middleware
@@ -31,7 +32,7 @@ async def menu(message: types.Message):
     r = await api.is_admin(message.chat.id)
     if r['Success']:
         text, markup = await bot_logic.admins_cmd(message)
-        await message.answer(text, reply_markup=markup)
+        await message.answer(text, reply_markup=markup, )
 #--------------------------------------------------------------------------
 # #Хэндлер на любой текст 
 # @router.message(F.text)
@@ -199,7 +200,12 @@ async def config_menu(call: types.CallbackQuery):
 # Обработчик для callback_data 'test_country'
 @router.callback_query(F.data.startswith("test_country "))
 async def test_country(call: types.CallbackQuery):
-    text, markup = await bot_logic.test_country_btn(call.message.chat.id)
+    # Разбираем callback_data для получения tgid и кода страны
+    _, tgid, hostname = call.data.split(" ")
+    # Используйте tgid и country_code в логике обработки
+    text, markup = await bot_logic.test_country_btn(tgid, hostname)
+
+    # Обновляем сообщение с новой информацией
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'account_menu'

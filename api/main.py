@@ -1,9 +1,10 @@
 import api
+import base64
+import urllib.parse
 from fastapi import Body, UploadFile
 from config import api_init, Tags
 from examples import ex
 from fastapi.responses import FileResponse
-import base64
 # pre-config #
 app = api_init()
 
@@ -104,6 +105,17 @@ async def inbound_creation(json = Body(example=ex.inbound_creation)):
     #     image_file.write(qr)
     #     qr_file = FileResponse(f"./qr_code/qr_image.png", media_type='application/octet-stream', filename=f"qr_image.png")
     #     return qr_file
+#--------------------------------------------------------------------------
+@app.get("/xui/servers_count", tags=[Tags.x_ui], summary="servers_count")
+async def servers_count():
+    r = await api.servers_count()
+    return r
+#--------------------------------------------------------------------------
+@app.get("/xui/server_info/{hostname}", tags=[Tags.x_ui], summary="servers_count")
+async def server_info(hostname: str):
+    decoded_hostname = urllib.parse.unquote(hostname)
+    r = await api.server_info(decoded_hostname)
+    return r
 #--------------------------------------------------------------------------
 @app.get("/redis_get_all", tags=[Tags.x_ui], summary="inbound creation")
 async def redis_get_all():

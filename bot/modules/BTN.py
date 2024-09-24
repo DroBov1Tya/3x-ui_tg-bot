@@ -1,5 +1,6 @@
+import json
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
-
+from config import CC
 
 #|=============================[Admin panel]=============================|
 #[🪄 Управление пользователями][Просмотреть логи][]
@@ -111,10 +112,37 @@ def menu(tgid):
 #--------------------------------------------------------------------------
 #[]      []
 #[]      []
-def config_menu(tgid):
-    btn1 = InlineKeyboardButton(text='🇦🇽 Test country', callback_data=f'test_country {tgid}')
-    buttons = [
-        [btn1],
-    ]
+def config_menu(tgid, servers):
+    buttons = []
+    row = []
+
+    for i, server in enumerate(servers['result']):
+        hostname = server['hostname']
+        country = CC.get(server["country"])
+
+        button = InlineKeyboardButton(
+            text=str(country), 
+            callback_data=f'test_country {tgid} {hostname}')
+        row.append(button)
+
+        if (i + 1) % 3 == 0:
+            buttons.append(row)
+            row = []
+    
+    menu_btn = InlineKeyboardButton(text= "🏠 Menu", callback_data=f'menu {tgid}')
+
+    if row:
+        buttons.append(row)       
+    buttons.append([menu_btn])
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-#--------------------------------------------------------------------------🇦🇮
+
+
+
+# def config_menu(tgid):
+#     btn1 = InlineKeyboardButton(text='🇦🇽 Test country', callback_data=f'test_country {tgid}')
+#     buttons = [
+#         [btn1],
+#     ]
+#     return InlineKeyboardMarkup(inline_keyboard=buttons)
+# #--------------------------------------------------------------------------🇦🇮
