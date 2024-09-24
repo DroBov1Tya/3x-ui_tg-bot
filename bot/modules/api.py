@@ -2,6 +2,7 @@ import base64
 import urllib.parse
 import os
 import tempfile
+import logging
 from asyncio import subprocess as sub
 from asyncio import create_subprocess_exec as create_sub
 from config import http, fastapi_url, fastapi_key

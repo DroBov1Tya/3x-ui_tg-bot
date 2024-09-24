@@ -1,4 +1,5 @@
 import base64
+import logging
 from modules import BTN, api
 
 #|=============================[Menu]=============================|
@@ -170,7 +171,7 @@ async def menu_cmd(message):
 <b>Возможности:</b>
 <i>Создание впн конфигов нажатием одной кнопки</i>
 
-<b>Beta 1.0.2</b>
+<b>Beta 0.0.0.0.0.1</b>
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
@@ -178,7 +179,7 @@ async def test_country_btn(tgid, hostname):
     data, qr_file = await api.test_country(hostname)
     config = data["config"]
 
-    text, markup = f"{config}", BTN.menu(tgid)
-    return text, markup, qr_file
+    text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
+    return text, markup, markup_delete, qr_file
 #|===========================[Endcomands]===========================|
 

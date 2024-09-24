@@ -1,4 +1,6 @@
 import json
+from typing import List, Dict, Any
+from random import choice
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from config import CC
 
@@ -100,8 +102,7 @@ def back(tgid):
 
 
 #|=============================[Menu]=============================|
-#[🏴‍☠️ Создать конфиг]      []
-#[]      [👤Account]
+#[🏴‍☠️ Создать конфиг][👤Account]
 def menu(tgid):
     btn1 = InlineKeyboardButton(text='🏴‍☠️ Создать конфиг', callback_data=f'config_menu {tgid}')
     btn2 = InlineKeyboardButton(text='👤Account', callback_data=f'account_menu {tgid}')
@@ -109,31 +110,72 @@ def menu(tgid):
         [btn1, btn2],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#|=============================[End Menu]=============================|
+#[❌ Delete]
+def delete_message(tgid):
+    btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
+    buttons = [
+        [btn1],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-#[]      []
-#[]      []
-def config_menu(tgid, servers):
-    buttons = []
-    row = []
+#[Dynamic]
+#[🎰 Random]
+#[🏠 Menu]
+def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
+    """
+    Создает динамически расширяющиеся меню конфигурации с кнопками серверов и опцией случайного выбора хоста.
 
-    for i, server in enumerate(servers['result']):
+    Args:
+        tgid (int): Идентификатор пользователя Telegram.
+        servers (Dict[str, Any]): Словарь с информацией о серверах.
+
+    Returns:
+        InlineKeyboardMarkup: Разметка для меню с кнопками.
+    """
+    buttons: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
+
+    for index, server in enumerate(servers.get('result', [])):
         hostname = server['hostname']
-        country = CC.get(server["country"])
+        country = CC.get(server["country"], "Unknown")
 
         button = InlineKeyboardButton(
-            text=str(country), 
-            callback_data=f'test_country {tgid} {hostname}')
+            text=country,
+            callback_data=f'test_country {tgid} {hostname}'
+        )
         row.append(button)
 
-        if (i + 1) % 3 == 0:
+        # Формируем ряд из трех кнопок
+        if (index + 1) % 3 == 0:
             buttons.append(row)
             row = []
-    
-    menu_btn = InlineKeyboardButton(text= "🏠 Menu", callback_data=f'menu {tgid}')
 
+    # Добавляем оставшиеся кнопки в последний ряд, если есть
     if row:
-        buttons.append(row)       
-    buttons.append([menu_btn])
+        buttons.append(row)
+
+    # Логика случайного выбора хоста
+    if servers.get('result'):
+        random_server = choice(servers['result'])
+        random_hostname = random_server['hostname']
+    else:
+        random_hostname = 'no_servers'
+
+    # Кнопка для случайного выбора сервера
+    random_button = InlineKeyboardButton(
+        text="🎰 Random", 
+        callback_data=f'test_country {tgid} {random_hostname}'
+    )
+    # Кнопка для возврата в главное меню
+    menu_button = InlineKeyboardButton(
+        text="🏠 Menu", 
+        callback_data=f'menu {tgid}'
+    )
+
+    # Добавляем кнопки в меню
+    buttons.append([random_button])
+    buttons.append([menu_button])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

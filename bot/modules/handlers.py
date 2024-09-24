@@ -1,6 +1,5 @@
-import io
+import logging
 from modules import bot_logic, api
-from PIL import Image
 from aiogram import Bot, types, F, Dispatcher, Router
 from aiogram.filters.command import Command
 from aiogram.types.input_file import InputFile
@@ -199,22 +198,71 @@ async def config_menu(call: types.CallbackQuery):
     text, markup = await bot_logic.config_menu_btn(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
+# Обработчик для callback_data 'delete'
+@router.callback_query(F.data.startswith("delete "))
+async def delete(call: types.CallbackQuery):
+    await call.message.delete()
+#--------------------------------------------------------------------------
+# Обработчик для callback_data 'test_country'
 @router.callback_query(F.data.startswith("test_country "))
 async def test_country(call: types.CallbackQuery):
-    _, tgid, hostname = call.data.split(" ")
-    text, markup, qr_file = await bot_logic.test_country_btn(tgid, hostname)
+    """
+    Обработчик для callback-запросов, связанных с выбором страны.
     
-    if qr_file:  # Проверяем, есть ли данные фото
-        try:
-            # Отправляем файл как фото
-            await call.message.answer_photo(photo=types.FSInputFile(qr_file), caption = text, reply_markup=markup)  # Используем answer_photo для отправки
+    Args:
+        call (types.CallbackQuery): Объект callback-запроса.
+    """
+    try:
+        _, tgid, hostname = call.data.split(" ")
+        # Получаем текст, разметку и файл QR-кода от логики бота
+        text, markup, markup_delete, qr_file = await bot_logic.test_country_btn(tgid, hostname)
 
-        except Exception as e:
-            print(f"Ошибка при обработке изображения: {e}")
-            await call.message.answer(text=f"Не удалось обработать изображение.\n{text}", reply_markup=markup)  # Используем answer для отправки текста
-    else:
-        # Если фото нет, просто отправляем текст
-        await call.message.answer(text=text, reply_markup=markup)  # Используем answer для отправки текста
+        if qr_file:
+            # Попытка отправить файл как фото
+            await call.message.answer_photo(
+                photo=types.FSInputFile(qr_file), 
+                caption=f"<code>{text}</code>", reply_markup=markup_delete
+            )
+
+            menu_text = f'''
+                <b>Spoof skuf bot 🏴‍☠️</b>
+
+<b>Ваш tgid:</b> <code>{tgid}</code>
+<b>Возможности:</b>
+<i>Создание впн конфигов нажатием одной кнопки</i>
+
+<b>Beta 0.0.0.0.0.1</b>
+                '''
+            
+            await call.message.answer(text = menu_text, reply_markup=markup)
+
+        else:
+            # Если файла нет, отправляем только текст
+            await call.message.answer(
+                text=text, 
+                reply_markup=markup
+            )
+    except FileNotFoundError:
+        # Обработка ситуации, когда файл не найден
+        await call.message.answer(
+            text=f"Файл не найден. Попробуйте позже.\n<code>{text}</code>", 
+            reply_markup=markup
+        )
+    except ValueError as ve:
+        # Обработка ситуации, если данные в callback некорректны
+        logging.error(f"Ошибка в данных callback: {ve}")
+        await call.message.answer(
+            text="Некорректные данные. Пожалуйста, попробуйте снова.",
+            reply_markup=markup
+        )
+    except Exception as e:
+        # Общая обработка других ошибок
+        logging.error(f"Неизвестная ошибка: {e}")
+        await call.message.answer(
+            text=f"Произошла ошибка при обработке запроса.",
+            reply_markup=markup
+        )
+
 
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'account_menu'
