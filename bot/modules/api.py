@@ -1,5 +1,7 @@
 import base64
 import urllib.parse
+import os
+import tempfile
 from asyncio import subprocess as sub
 from asyncio import create_subprocess_exec as create_sub
 from config import http, fastapi_url, fastapi_key
@@ -70,24 +72,29 @@ async def admin_fetchadmins():
     return r
 #--------------------------------------------------------------------------
 async def test_country(hostname):
+
     encoded_hostname = urllib.parse.quote(hostname)
     server_info = await http(method='GET', url = f"http://api:8000/xui/server_info/{encoded_hostname}", headers = headers)
-    print(server_info)
     d = {
         "hostname" : server_info["result"]["hostname"],
-        "web_user" :  server_info["result"]["web_user"],
+        "web_user" : server_info["result"]["web_user"],
         "web_pass" : server_info["result"]["web_pass"],
         "web_path" : server_info["result"]["web_path"]
     }
+
     r = await http(method='POST', url = "http://api:8000/xui/inbound_creation", headers=headers, data = d)
-    # qr = base64.b64decode(r["qr_data"])
-    # filename = r["result"]["remark"]
-    # path = "./qr_code"
-    # with open(path + filename, "rb") as image_file:
-    #     image_file.write(qr)
-        
-    #     return qr_file
-    return r
+    print(r["qr_data"])
+
+    qr_code_dir = "qr_code"
+    if not os.path.exists(qr_code_dir):
+        os.makedirs(qr_code_dir)
+
+    qr_byte = base64.b64decode(r["qr_data"])
+
+    with tempfile.NamedTemporaryFile(delete=False, dir=qr_code_dir, suffix=".png") as temp_qr_file:
+        temp_qr_file.write(qr_byte)  # Записываем данные QR-кода в файл
+        temp_qr_file_path = temp_qr_file.name
+    return r, temp_qr_file_path
 #--------------------------------------------------------------------------
 async def servers_count():
     r = await http(f"http://api:8000/xui/servers_count", method='GET', headers=headers)

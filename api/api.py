@@ -391,12 +391,11 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         values = ("test", inbound["remark"], inbound["email"], config)
 
         result = await pg.fetch(query, *values)
-        
         # Проверка результата и перехват ошибок
 
         if result is None:
             logger.info("Inbound creation successful for %s", inbound["remark"])
-            return {"Success": True, "result": result, "config": config, "qr_data": qr_data}
+            return {"Success": True, "result": result, "config": config, "qr_data": qr_data, "inbound" : inbound}
         
         logger.error("Insert operation returned None for data: %s", values)
         return {"Success": False, "Reason": "Insert operation failed, returned None"}

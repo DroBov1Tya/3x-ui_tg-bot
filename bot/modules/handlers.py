@@ -1,7 +1,9 @@
-from aiogram import Bot, types, F, Dispatcher, Router
+import io
 from modules import bot_logic, api
+from PIL import Image
+from aiogram import Bot, types, F, Dispatcher, Router
 from aiogram.filters.command import Command
-from aiogram.types import InputFile
+from aiogram.types.input_file import InputFile
 from middlewares.message_middleware import message_middleware
 from middlewares.callback_middleware import callback_middleware
 from middlewares.inline_middleware import inline_middleware
@@ -197,16 +199,23 @@ async def config_menu(call: types.CallbackQuery):
     text, markup = await bot_logic.config_menu_btn(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'test_country'
 @router.callback_query(F.data.startswith("test_country "))
 async def test_country(call: types.CallbackQuery):
-    # Разбираем callback_data для получения tgid и кода страны
     _, tgid, hostname = call.data.split(" ")
-    # Используйте tgid и country_code в логике обработки
-    text, markup = await bot_logic.test_country_btn(tgid, hostname)
+    text, markup, qr_file = await bot_logic.test_country_btn(tgid, hostname)
+    
+    if qr_file:  # Проверяем, есть ли данные фото
+        try:
+            # Отправляем файл как фото
+            await call.message.answer_photo(photo=types.FSInputFile(qr_file), caption = text, reply_markup=markup)  # Используем answer_photo для отправки
 
-    # Обновляем сообщение с новой информацией
-    await call.message.edit_text(text=text, reply_markup=markup)
+        except Exception as e:
+            print(f"Ошибка при обработке изображения: {e}")
+            await call.message.answer(text=f"Не удалось обработать изображение.\n{text}", reply_markup=markup)  # Используем answer для отправки текста
+    else:
+        # Если фото нет, просто отправляем текст
+        await call.message.answer(text=text, reply_markup=markup)  # Используем answer для отправки текста
+
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'account_menu'
 @router.callback_query(F.data.startswith("account_menu "))

@@ -175,15 +175,10 @@ async def menu_cmd(message):
     return text, markup
 #--------------------------------------------------------------------------
 async def test_country_btn(tgid, hostname):
-    data = await api.test_country(hostname)
+    data, qr_file = await api.test_country(hostname)
     config = data["config"]
-    qr = base64.b64decode(r["qr_data"])
-    with open("./qr_code/qr_image.png", "rb") as image_file:
-        image_file.write(qr)
-        qr_file = FileResponse(f"./qr_code/qr_image.png", media_type='application/octet-stream', filename=f"qr_image.png")
-        return qr_file
 
     text, markup = f"{config}", BTN.menu(tgid)
-    return text, markup
+    return text, markup, qr_file
 #|===========================[Endcomands]===========================|
 
