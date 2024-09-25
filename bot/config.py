@@ -2,9 +2,11 @@ import httpx
 import os
 import logging
 
+debug:  str = os.getenv("BOT_DEBUG")
 admins: list = os.getenv("ADMINS")
+
 #|===========================[TG bot init]===========================|
-if os.getenv("BOT_DEBUG"):
+if debug == "TRUE":
     bot_token: str = os.getenv("BOT_TOKEN_DEV")
 else:
     bot_token: str = os.getenv("BOT_TOKEN_PROD")
