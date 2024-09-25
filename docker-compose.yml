@@ -9,6 +9,7 @@ services:
         environment:
             BOT_TOKEN_PROD: ${BOT_TOKEN_PROD}
             BOT_TOKEN_DEV: ${BOT_TOKEN_DEV}
+            BOT_DEBUG: ${BOT_DEBUG}
             REDIS_DSN: ${REDIS_DSN}
             FASTAPI_KEY: ${FASTAPI_KEY}
             ADMINS: ${ADMINS}

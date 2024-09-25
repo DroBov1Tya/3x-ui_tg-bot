@@ -11,14 +11,13 @@ from fastapi_offline import FastAPIOffline
 from fastapi import FastAPI
 from typing import Any, Dict, List, Tuple, Optional
 
-debug: bool = os.getenv('FASTAPI_DEBUG')
+debug: str = os.getenv('FASTAPI_DEBUG') # TURN OFF DEBUG ON PROD !!!
 apikey: str = os.getenv('FASTAPI_KEY')
 pg_conn: str = os.getenv('POSTGRES_DSN')
 red_conn: str = os.getenv('REDIS_DSN')
 red_ttl: int = os.getenv('REDIS_EXPIRE')
 
-# VARS #
-debug: bool = debug               # TURN OFF DEBUG ON PROD !!!
+# VARS # 
 SECRET_VALUE: str = apikey       # CHANGE ME ON PROD !!!
 SECRET_HEADER: str = 'X-API-Key'
 
@@ -54,7 +53,7 @@ def api_init():
     Returns:
         FastAPI: Экземпляр FastAPI с соответствующими настройками.
     """
-    if debug is True:
+    if debug == "TRUE":
         app = FastAPIOffline(
             title=docs_title,
             description=docs_description
