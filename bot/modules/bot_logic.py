@@ -176,7 +176,7 @@ async def menu_cmd(message):
     return text, markup
 #--------------------------------------------------------------------------
 async def test_country_btn(tgid, hostname):
-    data, qr_file = await api.test_country(hostname)
+    data, qr_file = await api.test_country(tgid, hostname)
     config = data["config"]
 
     text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)

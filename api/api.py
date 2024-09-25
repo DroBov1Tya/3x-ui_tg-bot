@@ -369,8 +369,9 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
     password: str = data.get("web_pass")
     web_path: str = data.get("web_path")
     hostname: str = data.get("hostname")
+    tgid:     int = data.get("tgid")
 
-    if not all([username, password, web_path, hostname]):
+    if not all([username, password, web_path, hostname, tgid]):
         logger.error("Missing required fields in data: %s", data)
         return {"Success": False, "Reason": "Missing required fields"}
     
@@ -388,7 +389,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
             VALUES ($1, $2, $3, $4);
         """
 
-        values = ("test", inbound["remark"], inbound["email"], config)
+        values = (tgid, inbound["remark"], inbound["email"], config)
 
         result = await pg.fetch(query, *values)
         # Проверка результата и перехват ошибок

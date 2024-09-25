@@ -11,9 +11,9 @@ from fastapi_offline import FastAPIOffline
 from fastapi import FastAPI
 from typing import Any, Dict, List, Tuple, Optional
 
-debug: bool = os.getenv('FASTAPI_DEBUG', 'False')
-apikey: str = os.getenv('FASTAPI_KEY', '')
-pg_conn: str = os.getenv('POSTGRES_DSN', '')
+debug: bool = os.getenv('FASTAPI_DEBUG')
+apikey: str = os.getenv('FASTAPI_KEY')
+pg_conn: str = os.getenv('POSTGRES_DSN')
 red_conn: str = os.getenv('REDIS_DSN')
 red_ttl: int = os.getenv('REDIS_EXPIRE')
 
@@ -37,7 +37,7 @@ def auth401():
 
     def api_key_auth(x_api_key: str = Depends(X_API_KEY)):
         if x_api_key != SECRET_VALUE:
-            raise HTTPException(status_code=401)
+            raise HTTPException(status_code=401, detail="Invalid API Key")
 
     auth_dep = [Depends(api_key_auth)]
     return auth_dep
@@ -54,22 +54,22 @@ def api_init():
     Returns:
         FastAPI: Экземпляр FastAPI с соответствующими настройками.
     """
-
-    if debug:
-        app = FastAPI(
+    if debug is True:
+        app = FastAPIOffline(
             title=docs_title,
             description=docs_description
         )
         logging.info("FastAPI app initialized in debug mode.")
     else:
-        app = FastAPI(
-            docs_url=None,  # Отключить Swagger UI
-            redoc_url=None,  # Отключить Redoc
-            dependencies=[auth401()],  # Обратите внимание на правильное имя параметра
-            title=docs_title,
-            description=docs_description
+        app = FastAPIOffline(
+        # docs_url = None, # Disable docs (Swagger UI)
+        # redoc_url = None, # Disable redoc
+        dependencies = auth401(),
+        title = docs_title,
+        description = docs_description,
         )
-        logging.info("FastAPI app initialized in production mode.")
+
+    return app
 
     return app
 

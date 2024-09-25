@@ -4,7 +4,8 @@ import os
 
 red_conn = os.getenv('REDIS_DSN')
 red_ttl = os.getenv('REDIS_EXPIRE')
-
+fastapi_key: str = os.getenv("FASTAPI_KEY")
+fastapi_url: str = "http://api:8000/"
 
 async def http(url: str, method: str = "GET", headers = None, data = None, json = None, file = None, proxies = None, verify = None, timeout = 120):
     timeout_config = httpx.Timeout(timeout)

@@ -72,7 +72,7 @@ async def admin_fetchadmins():
     r = await http(f"http://api:8000/admin/fetchadmins", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
-async def test_country(hostname):
+async def test_country(tgid, hostname):
 
     encoded_hostname = urllib.parse.quote(hostname)
     server_info = await http(method='GET', url = f"http://api:8000/xui/server_info/{encoded_hostname}", headers = headers)
@@ -80,7 +80,8 @@ async def test_country(hostname):
         "hostname" : server_info["result"]["hostname"],
         "web_user" : server_info["result"]["web_user"],
         "web_pass" : server_info["result"]["web_pass"],
-        "web_path" : server_info["result"]["web_path"]
+        "web_path" : server_info["result"]["web_path"],
+        "tgid"     : tgid
     }
 
     r = await http(method='POST', url = "http://api:8000/xui/inbound_creation", headers=headers, data = d)
