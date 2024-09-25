@@ -52,8 +52,10 @@ async def create_config(inbound_data: dict) -> str:
         qr_filename = config_variables["client"]
         # Генерируем QR-код
         qr_code_path = f'qr_code/{qr_filename}.png'
-        qr = pyqrcode.create(url)
-        qr.png(qr_code_path)
+        qr = pyqrcode.create(url, error='L', version=27, mode='binary')  # Увеличиваем размер
+        
+        # Сохраняем QR-код в файл с заданным масштабом
+        qr.png(qr_code_path, scale=10)
 
         logger.info("QR-код успешно создан: %s", qr_code_path)
         logger.debug("Сгенерированный URL: %s", url)
