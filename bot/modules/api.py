@@ -15,10 +15,10 @@ headers = {
 async def create_user(message):
     d = {
         "user": {
-            "tgid": message.from_user.id,
-            "nickname": message.from_user.username,
-            "first_name": message.from_user.first_name,
-            "last_name": message.from_user.last_name
+            "tgid": message.chat.id,
+            "nickname": message.chat.username,
+            "first_name": message.chat.first_name,
+            "last_name": message.chat.last_name
         }
     }
     r = await http(f"http://api:8000/user/create", method='POST', data=d, headers=headers)

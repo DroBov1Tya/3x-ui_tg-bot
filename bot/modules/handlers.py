@@ -131,9 +131,9 @@ async def admin_unban_btn(call: types.CallbackQuery):
         text, markup = await bot_logic.admin_unban_btn(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_unban'
+# Обработчик для callback_data 'admin_add_user'
 @router.callback_query(F.data.startswith("admin_add_user "))
-async def admin_unban_btn(call: types.CallbackQuery):
+async def admin_add_user_btn(call: types.CallbackQuery):
     var = call.data.split(" ")
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:

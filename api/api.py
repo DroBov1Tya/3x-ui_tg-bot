@@ -25,19 +25,18 @@ async def user_create(data: Dict[str, Any]) -> Dict[str, Any]: # DONE
     query = """
         INSERT INTO users 
         (tgid, nickname, first_name, last_name, is_banned) 
-        VALUES ($1, '$2', '$3', '$4', True) 
+        VALUES ($1, $2, $3, $4, $5) 
         ON CONFLICT (tgid) DO NOTHING RETURNING true;
     """
-    values = [
-        userinfo,
+    values = (
         tgid,
         nickname,
         first_name,
-        last_name
-    ]
+        last_name,
+        True
+    )
     
-    r = await pg.fetch(query,*values)
-
+    r = await pg.fetch(query, *values)
     if r is None:
         return {"Success": False, "Reason": "User already exists"}
     else:
@@ -50,7 +49,7 @@ async def user_info(tgid: str) -> Dict[str, Any]: #DONE
         SELECT * FROM users WHERE tgid = $1;
     """
     
-    r = await pg.fetch(query,tgid)
+    r = await pg.fetch(query, tgid)
 
     if r is None:
         return {"Success": False, "Reason": "User not found"}
