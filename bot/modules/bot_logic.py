@@ -164,8 +164,9 @@ async def menu_cmd(message):
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def test_country_btn(tgid, hostname):
-    data, qr_file = await api.test_country(tgid, hostname)
+async def test_country_btn(message, hostname):
+    tgid = message.chat.id
+    data, qr_file = await api.test_country(message.chat.username, hostname)
     config = data["config"]
 
     text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)

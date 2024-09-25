@@ -10,10 +10,10 @@ from config import CC
 def admin(tgid):
     btn1 = InlineKeyboardButton(text='🪄 Управление пользователями', callback_data=f'admin_users {tgid}')
     btn2 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
-    #btn3 = InlineKeyboardButton(text='🎯 Set target', callback_data=f'target {tgid}')
+    btn3 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
         [btn1],
-        [btn2]
+        [btn2],[btn3]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------

@@ -215,7 +215,7 @@ async def test_country(call: types.CallbackQuery):
     try:
         _, tgid, hostname = call.data.split(" ")
         # Получаем текст, разметку и файл QR-кода от логики бота
-        text, markup, markup_delete, qr_file = await bot_logic.test_country_btn(tgid, hostname)
+        text, markup, markup_delete, qr_file = await bot_logic.test_country_btn(call.message, hostname)
 
         if qr_file:
             # Попытка отправить файл как фото
