@@ -26,10 +26,10 @@ class callback_middleware(BaseMiddleware):
             await message.bot.send_message(message.chat.id, "Ваша заявка на использование бота отправлена администратору")
             admins = await api.admin_fetchadmins()
             user = {
-                "User":         message.chat.id,
-                "Nickname":     f"@{message.chat.username}",
-                "First name":   message.chat.first_name,
-                "Last name":    message.chat.last_name ,
+                "User":         message.from_user.id,
+                "Nickname":     f"@{message.from_user.username}",
+                "First name":   message.from_user.first_name,
+                "Last name":    message.from_user.last_name,
             }
             output = str()
             for key, value in user.items():
