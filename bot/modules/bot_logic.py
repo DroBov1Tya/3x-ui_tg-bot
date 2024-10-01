@@ -17,7 +17,6 @@ async def account_menu_btn(tgid):
 ''', BTN.account_menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-
 #|===========================[End menu]===========================|
 
 #|=============================[admins panel]=============================|
@@ -134,6 +133,7 @@ async def admin_grep_users_btn(message):
     tgid = message.chat.id
 #--------------------------------------------------------------------------
 #|===========================[End admins panel]===========================|
+
 #|=============================[Comands]=============================|
 #Событие команды start
 async def start_cmd(message):
@@ -171,5 +171,7 @@ async def test_country_btn(message, hostname):
 
     text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
     return text, markup, markup_delete, qr_file
-#|===========================[Endcomands]===========================|
+#--------------------------------------------------------------------------
+
+#|===========================[End Logic]===========================|
 

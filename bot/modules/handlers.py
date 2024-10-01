@@ -182,9 +182,6 @@ async def admin_grep_users_btn(call: types.CallbackQuery):
 #--------------------------------------------------------------------------
 #|===========================[End Admin panel buttons]===========================|
 
-
-
-
 #|=============================[Menu buttons]=============================|
 # Обработчик для callback_data 'config_gen'
 @router.callback_query(F.data.startswith("config_gen "))

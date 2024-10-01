@@ -80,11 +80,6 @@ async def admin_fetchadmins():
     r = await api.admin_fetchadmins()
     return r
 #--------------------------------------------------------------------------
-@app.post("/add_server", tags=[Tags.x_ui], summary="add server")
-async def add_server(dict = Body(example=ex.add_server)):
-    r = await api.add_server(dict)
-    return r
-#--------------------------------------------------------------------------
 @app.post("/xui/init_server", tags=[Tags.x_ui], summary="server initialization")
 async def init_server(dict = Body(example=ex.init_server)):
     r = await api.init_server(dict)
@@ -115,6 +110,26 @@ async def servers_count():
 async def server_info(hostname: str):
     decoded_hostname = urllib.parse.unquote(hostname)
     r = await api.server_info(decoded_hostname)
+    return r
+#--------------------------------------------------------------------------
+@app.get("/xui/remove_configs/{hostname}", tags=[Tags.x_ui], summary="remove_configs")
+async def remove_configs(hostname: str):
+    r = await api.remove_configs(hostname)
+    return r
+#--------------------------------------------------------------------------
+@app.post("/servers/add_server", tags=[Tags.servers], summary="add server")
+async def add_server(dict = Body(example=ex.add_server)):
+    r = await api.add_server(dict)
+    return r
+#--------------------------------------------------------------------------
+@app.get("/servers/get_servers", tags=[Tags.servers], summary="get server")
+async def add_server():
+    r = await api.get_servers()
+    return r
+#--------------------------------------------------------------------------
+@app.post("/servers/server_down", tags=[Tags.servers], summary="disable server")
+async def server_down(dict = Body(example=ex.server_down)):
+    r = await api.server_down(dict)
     return r
 #--------------------------------------------------------------------------
 @app.get("/redis_get_all", tags=[Tags.x_ui], summary="inbound creation")

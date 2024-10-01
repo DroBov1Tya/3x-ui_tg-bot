@@ -9,6 +9,25 @@ from typing import Dict, Any, Union
 pg = PostgreSQL()
 logger = logging.getLogger(__name__)
 
+async def handle_exception(ex: Exception) -> Dict[str, Any]:
+    if isinstance(ex, ConnectionError):
+        logger.error("Connection error: %s", str(ex))
+        return {"Success": False, "Reason": f"Connection error: {ex}"}
+    
+    elif isinstance(ex, TimeoutError):
+        logger.warning("Timeout occurred: %s", str(ex))
+        return {"Success": False, "Reason": f"Timeout occurred: {ex}"}
+    
+    elif isinstance(ex, ValueError):
+        logger.error("Value error: %s", str(ex))
+        return {"Success": False, "Reason": f"Value error: {ex}"}
+    
+    else:
+        logger.exception("Unexpected error occurred")
+        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+
+
+
 #|=============================[User panel]=============================|
 
 #--------------------------------------------------------------------------
@@ -221,58 +240,7 @@ async def xui_login(data: Dict[str, Any]) -> Dict[str, Any]:
         return {"Success": True, "auth_headers": auth_headers}
     
     except Exception as ex:
-        logger.error("Failed to log in for user %s: %s", username, str(ex))
-        return {"Success": False, "Reason": f"Login failed: {ex}"}
-#--------------------------------------------------------------------------
-
-# 2. /xui/
-async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Добавляет сервер в БД
-
-    Args:
-        data (Dict[str, Any]): Входные данные, содержащие hostname(ip), порт, имя пользователя и пароль.
-
-    Returns:
-        Dict[str, Any]: True в случае успешного выполнения операции либо False и ошибку.
-    """
-
-    hostname: str = data.get("hostname")
-    port: str = data.get("port")
-    username: str = data.get("username")
-    passwd: str = data.get("passwd")
-    # Проверка на наличие обязательных данных
-    if not all([hostname, port, username, passwd]):
-        logger.error("Missing required fields in input data: %s", data)
-        return {"Success": False, "Reason": "Missing hostname, port, username or passwd"}
-
-    try:
-        # Проверка, существует ли сервер с таким hostname в БД
-        query_check = "SELECT hostname FROM servers WHERE hostname = $1"
-        result_check = await pg.fetch(query_check, hostname)
-    
-        if result_check:
-            logger.error("Server with hostname %s already exists", hostname)
-            return {"Success": False, "Reason": "Server already exists in the database"}
-        
-        # Вставка нового сервера в БД
-        query_insert = """
-            INSERT INTO servers (hostname, port, username, passwd)
-            VALUES ($1, $2, $3, $4)
-        """
-        values_insert = (hostname, port, username, passwd)
-        result_insert = await pg.execute(query_insert, (*values_insert,))
-
-        if result_insert is None:
-            logger.info("Server %s successfully inserted into the database", hostname)
-            return {"Success": True, "Inserted": result_insert}
-        else:
-            logger.error("Failed to insert server %s into the database", hostname)
-            return {"Success": False, "Reason": "Failed to insert server into the database"}
-    except Exception as e:
-        # Логирование ошибки с более детализированным сообщением
-        logger.exception("Database insertion error for %s: %s", hostname, str(e))
-        return {"Success": False, "Reason": f"Failed to insert values into the database: {str(e)}"}
+        return handle_exception(ex)
 #--------------------------------------------------------------------------
 
 # 3. /xui/
@@ -349,8 +317,7 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
             return {"Success": False, "Reason": "Failed to update server credentials"}
 
     except Exception as ex:
-        logger.exception("Unexpected error during server initialization for %s", hostname)
-        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+        return handle_exception(ex)
 #-------------------------------------------------------------------------- 
 
 # 4. /xui/
@@ -384,37 +351,30 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
 
         # Запись в БД
         query = """
-            INSERT INTO configs (tg_user, inbound, users, config)
-            VALUES ($1, $2, $3, $4);
+            INSERT INTO configs (hostname, tg_user, inbound, users, config)
+            VALUES ($1, $2, $3, $4, $5);
         """
 
-        values = (tgid, inbound["remark"], inbound["email"], config)
+        query_history = """
+            INSERT INTO configs_history (hostname, tg_user, inbound, users, config)
+            VALUES ($1, $2, $3, $4, $5);
+        """
+
+        values = (hostname, tgid, inbound["remark"], inbound["email"], config)
 
         result = await pg.fetch(query, *values)
         # Проверка результата и перехват ошибок
 
         if result is None:
             logger.info("Inbound creation successful for %s", inbound["remark"])
+            await pg.fetch(query_history, *values)
             return {"Success": True, "result": result, "config": config, "qr_data": qr_data, "inbound" : inbound}
         
         logger.error("Insert operation returned None for data: %s", values)
         return {"Success": False, "Reason": "Insert operation failed, returned None"}
     
-    except ConnectionError as conn_ex:
-        logger.error("Connection error while creating config: %s", str(conn_ex))
-        return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
-    
-    except TimeoutError as timeout_ex:
-        logger.warning("Timeout during config creation: %s", str(timeout_ex))
-        return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
-    
-    except ValueError as val_ex:
-        logger.error("Value error during inbound creation: %s", str(val_ex))
-        return {"Success": False, "Reason": f"Value error: {val_ex}"}
-    
     except Exception as ex:
-        logger.exception("Unexpected error during inbound creation")
-        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+        return handle_exception(ex)
 #--------------------------------------------------------------------------
 async def servers_count() -> Dict[str, Union[bool, str, Any]] :
     """
@@ -436,18 +396,11 @@ async def servers_count() -> Dict[str, Union[bool, str, Any]] :
         if result:
             logger.info("Select successful for %s", query)
             return {"Success": True, "result" : result}
+        else:
+            return None
         
-    except ConnectionError as conn_ex:
-        logger.error("Connection error while creating config: %s", str(conn_ex))
-        return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
-    
-    except TimeoutError as timeout_ex:
-        logger.warning("Timeout during select: %s", str(timeout_ex))
-        return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
-    
     except Exception as ex:
-        logger.exception("Unexpected error during select")
-        return {"Success": False, "Reason": f"Unexpected error: {ex}"}
+        return handle_exception(ex)
 #--------------------------------------------------------------------------
 async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
     """
@@ -470,17 +423,119 @@ async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
             logger.info("Select successful for %s", query)
             return {"Success": True, "result" : result}
         
+    except Exception as ex:
+        return handle_exception(ex)
+#--------------------------------------------------------------------------
+async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
+    """
+    Удаление конфигураций по hostname.
+    """
+    query = '''
+        DELETE FROM configs
+        WHERE hostname = $1;
+    '''
+    try:
+        logger.info(f"Удаляем конфигурации для хоста: {hostname}")
+        r = await pg.execute(query, (hostname,))
+        logger.info(f"Результат удаления: {r}")
+        if r == 'DELETE 0':
+            return {"Success": False, "Reason": "No records found to delete"}
+        else:
+            return {"Success": True, "result": r}
+
+    
+    except Exception as ex:
+        logger.error(f"Ошибка при удалении конфигураций для хоста {hostname}: {str(ex)}")
+        return handle_exception(ex)
+
+#--------------------------------------------------------------------------
+#|=============================[End XUI panel]=============================|
+
+#|===============================[Servers panel]===============================|
+# 1. /servers/add_server
+async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Добавляет сервер в БД
+
+    Args:
+        data (Dict[str, Any]): Входные данные, содержащие hostname(ip), порт, имя пользователя и пароль.
+
+    Returns:
+        Dict[str, Any]: True в случае успешного выполнения операции либо False и ошибку.
+    """
+
+    hostname: str = data.get("hostname")
+    port: str = data.get("port")
+    username: str = data.get("username")
+    passwd: str = data.get("passwd")
+    # Проверка на наличие обязательных данных
+    if not all([hostname, port, username, passwd]):
+        logger.error("Missing required fields in input data: %s", data)
+        return {"Success": False, "Reason": "Missing hostname, port, username or passwd"}
+
+    try:
+        # Проверка, существует ли сервер с таким hostname в БД
+        query_check = "SELECT hostname FROM servers WHERE hostname = $1"
+        result_check = await pg.fetch(query_check, hostname)
+    
+        if result_check:
+            logger.error("Server with hostname %s already exists", hostname)
+            return {"Success": False, "Reason": "Server already exists in the database"}
+        
+        # Вставка нового сервера в БД
+        query_insert = """
+            INSERT INTO servers (hostname, port, username, passwd)
+            VALUES ($1, $2, $3, $4)
+        """
+        values_insert = (hostname, port, username, passwd)
+        result_insert = await pg.execute(query_insert, (*values_insert,))
+
+        if result_insert is None:
+            logger.info("Server %s successfully inserted into the database", hostname)
+            return {"Success": True, "Inserted": result_insert}
+        else:
+            logger.error("Failed to insert server %s into the database", hostname)
+            return {"Success": False, "Reason": "Failed to insert server into the database"}
+        
+    except Exception as ex:
+        return handle_exception(ex)
+#--------------------------------------------------------------------------
+async def get_servers() -> Dict[str, Any]:
+    query = '''
+        SELECT * FROM servers WHERE is_alive is TRUE;
+    '''
+    try:
+        r = await pg.fetchall(query)
+        return {"Success" : True, "result" : r}
+    
     except ConnectionError as conn_ex:
         logger.error("Connection error while creating config: %s", str(conn_ex))
         return {"Success": False, "Reason": f"Connection error: {conn_ex}"}
     
     except TimeoutError as timeout_ex:
-        logger.warning("Timeout during select: %s", str(timeout_ex))
+        logger.warning("Timeout during config creation: %s", str(timeout_ex))
         return {"Success": False, "Reason": f"Timeout occurred: {timeout_ex}"}
     
+    except ValueError as val_ex:
+        logger.error("Value error during inbound creation: %s", str(val_ex))
+        return {"Success": False, "Reason": f"Value error: {val_ex}"}
+    
     except Exception as ex:
-        logger.exception("Unexpected error during select")
+        logger.exception("Unexpected error during inbound creation")
         return {"Success": False, "Reason": f"Unexpected error: {ex}"}
 #--------------------------------------------------------------------------
-#|=============================[End XUI panel]=============================|
+async def server_down(data: Dict[str, Any]) -> Dict[str, Any]:
+    host: str = data.get("hostname")
+    query = '''
+        UPDATE servers SET is_alive = FALSE WHERE hostname = $1
+    '''
 
+    try:
+        # Добавляем await для выполнения запроса к базе данных
+        r = await pg.fetch(query, host)
+        return {"Success": True, "result": r}
+    
+    except Exception as ex:
+        return handle_exception(ex)
+#--------------------------------------------------------------------------
+#|=============================[End Servers panel]=============================|

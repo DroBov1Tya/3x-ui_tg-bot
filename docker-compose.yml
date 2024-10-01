@@ -37,6 +37,20 @@ services:
         networks:
             - 3xui_network
 
+    checker:
+        hostname: checker
+        container_name: checker
+        build: 
+            context: ./checker
+        environment:
+            FASTAPI_KEY: ${FASTAPI_KEY}
+        restart: always
+        depends_on:
+            - psql  
+            - api
+            - redis  
+        networks:
+            - 3xui_network
 
     api:
         hostname: fastapi
