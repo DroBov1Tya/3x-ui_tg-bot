@@ -77,16 +77,29 @@ def admin_add_user(admin, target):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #|===========================[End Admin panel]===========================|
 
-#|=============================[Start]=============================|
-# [✅ Согласиться]
-# [🗒️ Terms & Conditions]
-def agree(tgid):
-    btn1 = InlineKeyboardButton(text='✅ Согласиться', callback_data=f'agree {tgid}')
-    #btn2 = InlineKeyboardButton(text='🗒️ Соглашение', url="https://telegra.ph/Test-12-21-370")
+#|=============================[Menu]=============================|
+# [🏴‍☠️ Create config]
+# [📋 Learn more]
+# [👤 Account]
+def menu(tgid):
+    btn1 = InlineKeyboardButton(text='🏴‍☠️ Create config', callback_data=f'config_menu {tgid}')
+    btn2 = InlineKeyboardButton(text='📋 Learn more', callback_data=f'learn_more {tgid}')
+    btn3 = InlineKeyboardButton(text='👤Account', callback_data=f'account_menu {tgid}')
     buttons = [
         [btn1],
-        #[btn2],
-    ] 
+        [btn2], 
+        [btn3]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+#|=============================[End Menu]=============================|
+#|=============================[Utilities]=============================|
+#[❌ Delete]
+def delete_message(tgid):
+    btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
+    buttons = [
+        [btn1],
+    ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
 # [🏠 Меню]
@@ -96,26 +109,9 @@ def back(tgid):
         [btn1],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-#|===========================[End Start]===========================|
+#|===========================[End Utilities]===========================|
 
-#|=============================[Menu]=============================|
-#[🏴‍☠️ Создать конфиг][👤Account]
-def menu(tgid):
-    btn1 = InlineKeyboardButton(text='🏴‍☠️ Создать конфиг', callback_data=f'config_menu {tgid}')
-    btn2 = InlineKeyboardButton(text='👤Account', callback_data=f'account_menu {tgid}')
-    buttons = [
-        [btn1, btn2],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-#|=============================[End Menu]=============================|
-#[❌ Delete]
-def delete_message(tgid):
-    btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
-    buttons = [
-        [btn1],
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-#--------------------------------------------------------------------------
+#|=============================[Config generation]=============================|
 #[Dynamic]
 #[🎰 Random]
 #[🏠 Menu]
@@ -180,4 +176,5 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
         buttons.append([menu_button])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-# #--------------------------------------------------------------------------🇦🇮
+#--------------------------------------------------------------------------
+#|===========================[End Config generation]===========================|

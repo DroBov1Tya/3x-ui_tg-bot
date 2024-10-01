@@ -240,7 +240,7 @@ async def xui_login(data: Dict[str, Any]) -> Dict[str, Any]:
         return {"Success": True, "auth_headers": auth_headers}
     
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
 # 3. /xui/
@@ -317,7 +317,7 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
             return {"Success": False, "Reason": "Failed to update server credentials"}
 
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #-------------------------------------------------------------------------- 
 
 # 4. /xui/
@@ -362,19 +362,19 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
 
         values = (hostname, tgid, inbound["remark"], inbound["email"], config)
 
-        result = await pg.fetch(query, *values)
+        result = await pg.execute(query, values)
         # Проверка результата и перехват ошибок
 
         if result is None:
             logger.info("Inbound creation successful for %s", inbound["remark"])
-            await pg.fetch(query_history, *values)
+            await pg.execute(query_history, values)
             return {"Success": True, "result": result, "config": config, "qr_data": qr_data, "inbound" : inbound}
         
         logger.error("Insert operation returned None for data: %s", values)
         return {"Success": False, "Reason": "Insert operation failed, returned None"}
     
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 async def servers_count() -> Dict[str, Union[bool, str, Any]] :
     """
@@ -400,7 +400,7 @@ async def servers_count() -> Dict[str, Union[bool, str, Any]] :
             return None
         
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
     """
@@ -424,7 +424,7 @@ async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
             return {"Success": True, "result" : result}
         
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
     """
@@ -446,7 +446,7 @@ async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
     
     except Exception as ex:
         logger.error(f"Ошибка при удалении конфигураций для хоста {hostname}: {str(ex)}")
-        return handle_exception(ex)
+        return await handle_exception(ex)
 
 #--------------------------------------------------------------------------
 #|=============================[End XUI panel]=============================|
@@ -498,7 +498,7 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
             return {"Success": False, "Reason": "Failed to insert server into the database"}
         
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 async def get_servers() -> Dict[str, Any]:
     query = '''
@@ -536,6 +536,6 @@ async def server_down(data: Dict[str, Any]) -> Dict[str, Any]:
         return {"Success": True, "result": r}
     
     except Exception as ex:
-        return handle_exception(ex)
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 #|=============================[End Servers panel]=============================|

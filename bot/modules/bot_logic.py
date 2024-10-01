@@ -160,8 +160,37 @@ async def menu_cmd(message):
 <b>Возможности:</b>
 <i>Создание впн конфигов нажатием одной кнопки</i>
 
-<b>Beta 0.0.0.0.0.1</b>
+<b>Beta 0.3</b>
 ''', BTN.menu(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def learn_more_btn(tgid):
+    text, markup = f'''
+Our VPN Features:
+
+🌍 Unlimited access:
+Bypass restrictions and enjoy your favorite websites and apps without interruptions.
+
+⚡ Fast speed:
+Up to 300 Mbps, ensuring smooth browsing and streaming.
+
+🔒 Data protection:
+Secure your connection with encryption, especially on public Wi-Fi.
+
+📱 Multi-device support:
+Use one account across all your devices – iOS, Android, Windows, and macOS.
+
+🛡️ Advanced security:
+VLESS protocol keeps your traffic invisible and secure.
+
+💼 Global servers:
+Access servers in the US, Europe, and Asia for stable and fast connections.
+
+🔐 Privacy assured:
+Stay anonymous online, with the option to pay via cryptocurrency for extra security.
+
+Simple, reliable, and secure.
+    ''', BTN.back(tgid)
     return text, markup
 #--------------------------------------------------------------------------
 async def test_country_btn(message, hostname):

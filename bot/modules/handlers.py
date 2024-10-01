@@ -228,7 +228,7 @@ async def test_country(call: types.CallbackQuery):
 <b>Возможности:</b>
 <i>Создание впн конфигов нажатием одной кнопки</i>
 
-<b>Beta 0.0.0.0.0.1</b>
+<b>Beta 0.3</b>
                 '''
             
             await call.message.answer(text = menu_text, reply_markup=markup)
@@ -259,6 +259,12 @@ async def test_country(call: types.CallbackQuery):
             text=f"Произошла ошибка при обработке запроса.",
             reply_markup=markup
         )
+#--------------------------------------------------------------------------
+# Обработчик для callback_data 'learn more'
+@router.callback_query(F.data.startswith("learn_more "))
+async def learn_more(call: types.CallbackQuery):
+    text, markup = await bot_logic.learn_more_btn(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
 
 
 #--------------------------------------------------------------------------
