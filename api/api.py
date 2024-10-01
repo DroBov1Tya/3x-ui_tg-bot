@@ -396,6 +396,8 @@ async def servers_count() -> Dict[str, Union[bool, str, Any]] :
         if result:
             logger.info("Select successful for %s", query)
             return {"Success": True, "result" : result}
+        else:
+            return None
         
     except Exception as ex:
         return handle_exception(ex)
