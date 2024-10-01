@@ -98,9 +98,6 @@ def back(tgid):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #|===========================[End Start]===========================|
 
-
-
-
 #|=============================[Menu]=============================|
 #[🏴‍☠️ Создать конфиг][👤Account]
 def menu(tgid):
@@ -178,13 +175,4 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
     buttons.append([menu_button])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-
-# def config_menu(tgid):
-#     btn1 = InlineKeyboardButton(text='🇦🇽 Test country', callback_data=f'test_country {tgid}')
-#     buttons = [
-#         [btn1],
-#     ]
-#     return InlineKeyboardMarkup(inline_keyboard=buttons)
 # #--------------------------------------------------------------------------🇦🇮

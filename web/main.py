@@ -1,12 +1,9 @@
 import flet
 import asyncio
 import api
-from config import http, fastapi_key
+from config import http
 from flet import Page, Row, TextField, ElevatedButton, Column, Text
 
-headers = {
-    "X-API-Key": fastapi_key
-}
 
 async def main(page: Page):
     # Заголовок страницы
@@ -61,7 +58,7 @@ async def main(page: Page):
                     # Проверка успешного добавления
                     if response_json.get("Success") == True:
                         try:
-                            await http(method="POST", url="http://api:8000/xui/init_server", json={"hostname": hostname}, headers=headers)
+                            await api.init_server(hostname)
                             result_display.controls.append(Text(f"Сервер {hostname} успешно добавлен!"))
                         except Exception as e:
                             result_display.controls.append(Text(f"Ошибка при инициализации сервера {hostname}: {e}"))

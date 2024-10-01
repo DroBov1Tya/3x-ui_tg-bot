@@ -29,10 +29,23 @@ CREATE TABLE servers (
 
 CREATE TABLE configs (
     id          serial PRIMARY KEY,
+    hostname    TEXT,
     tg_user     TEXT,
     inbound     TEXT,
     users       TEXT,
-    config     TEXT,
+    config      TEXT,
+    ttl         TIMESTAMP DEFAULT NOW(), /*BIGINT*/
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE configs_history (
+    id          serial PRIMARY KEY,
+    hostname    TEXT,
+    tg_user     TEXT,
+    inbound     TEXT,
+    users       TEXT,
+    config      TEXT,
+    ttl         TIMESTAMP DEFAULT NOW(),     /*BIGINT*/
     created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

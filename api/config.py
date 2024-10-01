@@ -29,6 +29,7 @@ class Tags(Enum):
     user = "User"
     admin = "Admin"
     x_ui = "X-ui"
+    servers = "Servers"
 
 
 def auth401():
@@ -67,8 +68,6 @@ def api_init():
         title = docs_title,
         description = docs_description,
         )
-
-    return app
 
     return app
 

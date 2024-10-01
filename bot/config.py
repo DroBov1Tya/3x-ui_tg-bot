@@ -35,7 +35,6 @@ async def http(url: str, method: str = "GET", headers=None, data = None, files =
     return result
 #|===========================[End Methods]=============================|
 
-
 #|===============================[Countries]===============================|
 
 CC = {

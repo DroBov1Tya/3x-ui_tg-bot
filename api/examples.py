@@ -44,3 +44,7 @@ class ex:
         "passwd" : "root",
         "web_path" : "http://192.168.0.0/3WJH9XMEIu"
     }
+
+    server_down = {
+        "hostname" : "192.168.1.1"
+    }
