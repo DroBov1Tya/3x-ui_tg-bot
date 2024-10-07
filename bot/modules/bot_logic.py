@@ -1,140 +1,8 @@
 import base64
 import logging
 from modules import BTN, api
-
+from config import logger
 #|=============================[Menu]=============================|
-async def config_menu_btn(tgid):
-    servers = await api.servers_count()
-    text, markup = '''
-<b>🏴 Выбор стран 🏴</b>
-Выберете один из предложенных вариантов
-''', BTN.config_menu(tgid, servers)
-    return text, markup
-#--------------------------------------------------------------------------
-async def account_menu_btn(tgid):
-    text, markup = '''
-<b>👤 Аккаунт</b>
-''', BTN.account_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-#|===========================[End menu]===========================|
-
-#|=============================[admins panel]=============================|
-#Админка
-async def admins_cmd(message):
-    tgid = message.chat.id
-    text, markup = '''
-<b>DuckSayCrack 🦆</b>
-Админ - панель
-<i>Можно взаимодействовать с пользователями - банить, удалять, повышать привилегии итд...
-Так же для есть возможность разом выкачать всех пользователей из БД</i>
-''', BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_users_btn(message):
-    tgid = message.chat.id
-    text, markup = "Управление", BTN.admin_users_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_level_btn(message):
-    tgid = message.chat.id
-    text, markup = "Назначение уровня доступа", BTN.admin_level_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_set_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_set(target)
-    text, markup = f"Пользователь {target} назначен администратором", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_unset_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_unset(target)
-    text, markup = f"Пользователь {target} Разжалован", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_balance_btn(message):
-    tgid = message.chat.id
-#--------------------------------------------------------------------------
-async def admin_users_list_btn(message):
-    tgid = message.chat.id
-    text, markup = f"Получение информации о пользователе / пользователях", BTN.admin_users_list_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_ban_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_ban(target)
-    text, markup = f"Пользователь {target} забанен", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_unban_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_unban(target)
-    text, markup = f"Пользователь {target} разбанен", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_add_user_btn(message, target):
-    await api.admin_unban(target)
-    text, markup = f"Пользователь {target} разбанен", BTN.admin(message.chat.id)
-    await message.bot.send_message(chat_id=target, text = '''
-<b>🏴 Выбор стран 🏴</b>
-Выберете один из предложенных вариантов
-''', reply_markup=BTN.menu(target))
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_level1_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_level1(target)
-    text, markup = f"Пользователю {target} назначен уровень 1: Demo", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_level2_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_level2(target)
-    text, markup = f"Пользователю {target} назначен уровень 2: Advanced", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_level3_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    await api.admin_level3(target)
-    text, markup = f"Пользователю {target} назначен уровень 3: Premium", BTN.admin(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_grep_user_btn(message):
-    tgid = message.chat.id
-    target = await api.fetch_target(tgid)
-    user = await api.user_info(target)
-    user_info = {
-                "<b>User</b>":         user['user']['tgid'],
-                "<b>Nickname</b>":     f"@{user['user']['nickname']}",
-                "<b>First name</b>":   user['user']['first_name'],
-                "<b>Last name</b>":    user['user']['last_name'],
-                "<b>Balance</b>":      user['user']['balance'],
-                "<b>User level</b>":   user['user']['user_level'],
-                "<b>Is banned</b>":    user['user']['is_banned'],
-                "<b>Is admin</b>":     user['user']['is_admin'],
-                "<b>Create date</b>":  user['user']['created_at'],
-                "<b>Target</b>":       user['user']['target']
-            }
-    output = str()
-    for key, value in user_info.items():
-        output += f"{key}: {value}\n"
-    text, markup = output, BTN.admin_users_menu(tgid)
-    return text, markup
-#--------------------------------------------------------------------------
-async def admin_grep_users_btn(message):
-    tgid = message.chat.id
-#--------------------------------------------------------------------------
-#|===========================[End admins panel]===========================|
-
-#|=============================[Comands]=============================|
 #Событие команды start
 async def start_cmd(message):
         # get user info
@@ -154,17 +22,20 @@ async def start_cmd(message):
 async def menu_cmd(message):
     tgid = message.chat.id
     text, markup = f'''
-<b>Spoof skuf bot 🏴‍☠️</b>
+<b>Welcome to Spoof VeilVoyager 🌌</b>
+_______________________
 
-<b>Ваш tgid:</b> <code>{tgid}</code>
-<b>Возможности:</b>
-<i>Создание впн конфигов нажатием одной кнопки</i>
+🚀 **Streamline your VPN setup effortlessly!**  
+Experience seamless connectivity at your fingertips.
 
-<b>Beta 0.3</b>
+<b>Features:</b>
+✨ <i>Create VPN configurations with a single click</i>
+
+<b>Beta 0.4</b>
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def learn_more_btn(tgid):
+async def learn_more(tgid):
     text, markup = f'''
 Our VPN Features:
 
@@ -193,14 +64,148 @@ Simple, reliable, and secure.
     ''', BTN.back(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def test_country_btn(message, hostname):
-    tgid = message.chat.id
-    data, qr_file = await api.test_country(message.chat.username, hostname)
-    config = data["config"]
+async def create_config(message, hostname):
+    try:
+        tgid = message.chat.id
+        data, qr_file = await api.create_config(message, hostname)
+        print(data)
+        if data is None:
+            text = "Your subscription has expired, would you like to renew it?"
+            markup = BTN.pay_subscription()
+            markup_delete = BTN.delete_message()
+            return text, markup, markup_delete, None
 
-    text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
-    return text, markup, markup_delete, qr_file
+        config = data["config"]
+
+        text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
+        return text, markup, markup_delete, qr_file
+    
+    except Exception as e:
+        # Обрабатываем любые исключения, которые могут возникнуть
+        logger.error(f"Error in create_config: {str(e)}")
+        text = "An error occurred while generating the configuration. Please try again later."
+        markup = BTN.menu(tgid)
+        markup_delete = BTN.delete_message(tgid)
+        return text, markup, markup_delete, None
+#--------------------------------------------------------------------------
+async def config_menu(tgid):
+    servers = await api.servers_count()
+    text, markup = '''
+<b>🏴 Choose VPN country 🏴</b>
+''', BTN.config_menu(tgid, servers)
+    return text, markup
+#--------------------------------------------------------------------------
+async def account_menu(tgid):
+    text, markup = '''
+<b>👤 Account</b>
+Manage your account settings and access various features:
+
+- <i>Top up balance</i> to ensure uninterrupted service.
+
+- <i>Pay subscription</i> to continue enjoying our premium features.
+
+- <i>Settings</i> to customize your experience.
+
+''', BTN.account_menu(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def top_up_ballance(tgid):
+    text, markup = '''
+<b>💸 Pay Methods</b>
+We accept payments through the following methods:
+
+- <i>Cryptocurrency</i> for instant and anonymous transactions.
+
+''', BTN.top_up_ballance(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def pay_subscription(tgid):
+    text, markup = '''
+<b>📅 Subscription Options</b>
+Choose the subscription plan that best suits your needs and enjoy uninterrupted access to our services:
+
+- <i>1 Month Subscription</i>: Perfect for those who want to try out our features.
+
+- <i>6 Months Subscription</i>: A great choice for long-term users looking for value.
+
+- <i>1 Year Subscription</i>: Best for frequent users who want to maximize savings.
+
+''', BTN.pay_subscription(tgid)
+    return text, markup
 #--------------------------------------------------------------------------
 
-#|===========================[End Logic]===========================|
 
+#|=============================[admins panel]=============================|
+#Админка
+async def admins_cmd(message):
+    tgid = message.chat.id
+    text, markup = '''
+Админ - панель
+<i>Основная функция - создание ваучеров</i>
+''', BTN.admin(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_create_voucher(message):
+    tgid = message.chat.id
+    text, markup = '''
+<b>Создание ваучеров</b>
+<i>Здесь вы можете создать ваучер на подписку для пользователей на указанный срок. Выберите один из вариантов ниже, чтобы сгенерировать соответствующий ваучер:</i>
+
+- <b>⏳ 1 Month</b>: Создаёт ваучер на 1 месяц подписки.
+
+- <b>🕰️ 6 Months</b>: Создаёт ваучер на 6 месяцев подписки.
+
+- <b>🌍 1 Year</b>: Создаёт ваучер на 1 год подписки.
+
+Нажмите соответствующую кнопку для создания ваучера.
+''', BTN.admin_create_voucher(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_users(message):
+    tgid = message.chat.id
+    text, markup = "Управление", BTN.admin_users_menu(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_ban(message, target):
+    tgid = message.chat.id
+    await api.admin_ban(target)
+    text, markup = f"Пользователь {target} забанен", BTN.admin(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_unban(message):
+    tgid = message.chat.id
+    target = await api.fetch_target(tgid)
+    await api.admin_unban(target)
+    text, markup = f"Пользователь {target} разбанен", BTN.admin(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_add_user(message, target):
+    await api.admin_unban(target)
+    text, markup = f"Пользователь {target} разбанен", BTN.admin(message.chat.id)
+    await message.bot.send_message(chat_id=target, text = '''
+<b>🏴 Выбор стран 🏴</b>
+Выберете один из предложенных вариантов
+''', reply_markup=BTN.menu(target))
+    return text, markup
+
+#|=============================[Admin Vouchers create]=============================|
+async def admin_create_voucher_one(message):
+    tgid = message.chat.id
+    r = await api.admin_create_voucher_one()
+    vaucher_code = r.get("voucher")
+    text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_create_voucher_six(message):
+    tgid = message.chat.id
+    r = await api.admin_create_voucher_six()
+    vaucher_code = r.get("voucher")
+    text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+async def admin_create_voucher_year(message):
+    tgid = message.chat.id
+    r = await api.admin_create_voucher_year()
+    vaucher_code = r.get("voucher")
+    text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
+    return text, markup

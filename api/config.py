@@ -11,6 +11,8 @@ from fastapi_offline import FastAPIOffline
 from fastapi import FastAPI
 from typing import Any, Dict, List, Tuple, Optional
 
+logger = logging.getLogger(__name__)
+
 debug: str = os.getenv('FASTAPI_DEBUG') # TURN OFF DEBUG ON PROD !!!
 apikey: str = os.getenv('FASTAPI_KEY')
 pg_conn: str = os.getenv('POSTGRES_DSN')
@@ -110,6 +112,14 @@ class PostgreSQL():
         async with self.pool.acquire() as connection:
             async with connection.transaction():
                 return await connection.fetch(query, *args)
+    
+    async def fetchval(self, query: str, *args: Any):
+        await self.connect()
+
+        async with self.pool.acquire() as connection:
+            async with connection.transaction():
+                result = await connection.fetchval(query, *args)  # Используем fetchval
+                return result
 
 # aioredis wrapper
 """

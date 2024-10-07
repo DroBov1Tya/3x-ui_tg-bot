@@ -6,7 +6,7 @@ from config import logger
 # Главная асинхронная функция
 async def main():
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(30)
 
         r = await api.get_servers()
         servers = r.get("result")

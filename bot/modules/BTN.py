@@ -5,63 +5,36 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQuer
 from config import CC
 
 #|=============================[Admin panel]=============================|
-#[🪄 Управление пользователями][Просмотреть логи][]
-#[][][]
+# [🪄 Управление пользователями]
+# [🎫 Создать ваучер]
+# [🏠 Меню]
+# [❌ Delete]
 def admin(tgid):
     btn1 = InlineKeyboardButton(text='🪄 Управление пользователями', callback_data=f'admin_users {tgid}')
-    btn2 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
-    btn3 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
+    btn2 = InlineKeyboardButton(text='🎫 Создать ваучер', callback_data=f'admin_create_voucher {tgid}')
+    btn3 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
+    btn4 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
-        [btn1],
-        [btn2],[btn3]
+        [btn1, btn2],
+        [btn3],
+        [btn4]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-def admin_users_menu(tgid):
-#[☭ Уровень доступа][⚠️ Назначить админа][💸 Изменить баланс]
-#[🧍 Пользователи][🔨 Забанить][🛠️ Разабанить]
-#[🏠 Меню]
-    btn1 = InlineKeyboardButton(text='☭ Уровень доступа', callback_data=f'admin_level {tgid}')
-    btn2 = InlineKeyboardButton(text='🧍 Пользователи', callback_data=f'admin_users_list {tgid}')
-    btn3 = InlineKeyboardButton(text='🔨 Забанить', callback_data=f'admin_ban {tgid}')
-    btn4 = InlineKeyboardButton(text='🛠️ Разабанить', callback_data=f'admin_unban {tgid}')
-    btn5 = InlineKeyboardButton(text='💸 Изменить баланс ❌', callback_data=f'admin_balance {tgid}')
-    btn6 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
-    buttons = [
-        [btn1, btn2],
-        [btn3, btn4],
-        [btn5, btn6]
-    ] 
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-#--------------------------------------------------------------------------
-#[💪🏻 Level 1: Demo]
-#[💪🏽 Level 2: Advanced]
-#[💪🏿 Level 3: Premium]
-def admin_level_menu(tgid):
-    btn1 = InlineKeyboardButton(text='💪🏻 Level 1: Demo', callback_data=f'admin_level1 {tgid}')
-    btn2 = InlineKeyboardButton(text='💪🏽 Level 2: Advanced', callback_data=f'admin_level2 {tgid}')
-    btn3 = InlineKeyboardButton(text='💪🏿 Level 3: Premium', callback_data=f'admin_level3 {tgid}')
-    btn4 = InlineKeyboardButton(text='⚠️ Level 9000: Admin', callback_data=f'admin_set {tgid}')
-    btn5 = InlineKeyboardButton(text='🔪 Kill Admin', callback_data=f'admin_unset {tgid}')
-    btn6 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'admin_users {tgid}')
+# [⏳ 1 Month]
+# [🕰️ 6 Months]
+# [🌍 1 Year]
+# [🔙 Menu]
+def admin_create_voucher(tgid):
+    btn1 = InlineKeyboardButton(text='⏳ 1 Month', callback_data=f'admin_create_voucher_one {tgid}')
+    btn2 = InlineKeyboardButton(text='🕰️ 6 Months', callback_data=f'admin_create_voucher_six {tgid}')
+    btn3 = InlineKeyboardButton(text='🌍 1 Year', callback_data=f'admin_create_voucher_year {tgid}')
+    btn4 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
     buttons = [
         [btn1],
         [btn2],
-        [btn3,],
-        [btn4, btn5],
-        [btn6]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-#--------------------------------------------------------------------------
-#[🪄 Управление пользователями][Просмотреть логи][]
-#[][][]
-def admin_users_list_menu(tgid):
-    btn1 = InlineKeyboardButton(text='👤 Получить информацию о пользователе', callback_data=f'admin_grep_user {tgid}')
-    btn2 = InlineKeyboardButton(text='👥 Скачать информацию о всех пользователях ❌', callback_data=f'admin_grep_users {tgid}')
-    btn3 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'admin_users {tgid}')
-    buttons = [
-        [btn1, btn2],
-        [btn3]
+        [btn3],
+        [btn4]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
@@ -75,7 +48,7 @@ def admin_add_user(admin, target):
         [btn2]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-#|===========================[End Admin panel]===========================|
+
 
 #|=============================[Menu]=============================|
 # [🏴‍☠️ Create config]
@@ -92,19 +65,63 @@ def menu(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-#|=============================[End Menu]=============================|
+# [💰 Top up balance]
+# [💳 Pay subscription]
+# [⚙️ Settings]
+# [🔙 Menu]
+def account_menu(tgid):
+    btn1 = InlineKeyboardButton(text='💰 Top up balance', callback_data=f'top_up_ballance {tgid}')
+    btn2 = InlineKeyboardButton(text='💳 Pay subscription', callback_data=f'pay_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text='⚙️ Settings', callback_data=f'account_settings {tgid}')
+    btn4 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1, btn2, btn3],
+        [btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+# [₿ Pay with crypto]
+# [👤 Back] [🔙 Menu]
+def top_up_ballance(tgid):
+    btn1 = InlineKeyboardButton(text='₿ Pay with crypto', callback_data=f'pay_with_crypto {tgid}')
+    btn2 = InlineKeyboardButton(text='👤 Back', callback_data=f'account_menu {tgid}')
+    btn3 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2, btn3]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+# [⏳ 1 Month Subscription]
+# [🕰️ 6 Months Subscription]
+# [🌍 1 Year Subscription]
+# [👤 Back] [🔙 Menu]
+def pay_subscription(tgid):
+    btn1 = InlineKeyboardButton(text='⏳ 1 Month Subscription', callback_data=f'one_month_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text='🕰️ 6 Months Subscription', callback_data=f'six_months_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text='🌍 1 Year Subscription', callback_data=f'year_subscription {tgid}')
+    btn4 = InlineKeyboardButton(text='👤 Back', callback_data=f'account_menu {tgid}')
+    btn5 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3],
+        [btn4, btn5]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 #|=============================[Utilities]=============================|
 #[❌ Delete]
 def delete_message(tgid):
+    
     btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
         [btn1],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-# [🏠 Меню]
+# [🔙 Menu]
 def back(tgid):
-    btn1 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
+    btn1 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
     buttons = [
         [btn1],
     ]
@@ -114,7 +131,7 @@ def back(tgid):
 #|=============================[Config generation]=============================|
 #[Dynamic]
 #[🎰 Random]
-#[🏠 Menu]
+#[🔙 Menu]
 def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
     """
     Создает динамически расширяющиеся меню конфигурации с кнопками серверов и опцией случайного выбора хоста.
@@ -131,7 +148,7 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
 
     # Кнопка для возврата в главное меню
     menu_button = InlineKeyboardButton(
-        text="🏠 Menu", 
+        text="🔙 Menu", 
         callback_data=f'menu {tgid}'
     )
     
@@ -142,7 +159,7 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
 
             button = InlineKeyboardButton(
                 text=country,
-                callback_data=f'test_country {tgid} {hostname}'
+                callback_data=f'create_config {tgid} {hostname}'
             )
             row.append(button)
 
@@ -165,7 +182,7 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
         # Кнопка для случайного выбора сервера
         random_button = InlineKeyboardButton(
             text="🎰 Random", 
-            callback_data=f'test_country {tgid} {random_hostname}'
+            callback_data=f'create_config {tgid} {random_hostname}'
         )
 
         # Добавляем кнопки в меню
@@ -177,4 +194,3 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-#|===========================[End Config generation]===========================|

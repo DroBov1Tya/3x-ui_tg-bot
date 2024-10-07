@@ -3,12 +3,19 @@ from modules import bot_logic, api
 from aiogram import Bot, types, F, Dispatcher, Router
 from aiogram.filters.command import Command
 from aiogram.types.input_file import InputFile
+from aiogram.types import Message
+from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from middlewares.message_middleware import message_middleware
 from middlewares.callback_middleware import callback_middleware
 from middlewares.inline_middleware import inline_middleware
 
 router = Router()
 
+# Описание состояний для FSM
+class VoucherStates(StatesGroup):
+    waiting_for_voucher = State()
 
 router.message.middleware(message_middleware())
 router.callback_query.middleware(callback_middleware())
@@ -27,6 +34,39 @@ async def menu(message: types.Message):
     text, markup = await bot_logic.menu_cmd(message)
     await message.answer(text, reply_markup=markup)
 #--------------------------------------------------------------------------
+# Хэндлер на команду /voucher
+@router.message(Command("voucher"))
+async def start_voucher_process(message: Message, state: FSMContext):
+    """
+    Хэндлер для команды /voucher. Отправляет сообщение с просьбой ввести код ваучера
+    и переводит пользователя в состояние ожидания кода ваучера.
+    """
+    await message.answer("Введите код ваучера:")
+    # Устанавливаем состояние ожидания ваучера
+    await state.set_state(VoucherStates.waiting_for_voucher)
+@router.message(StateFilter(VoucherStates.waiting_for_voucher))
+async def process_voucher_input(message: Message, state: FSMContext):
+    """
+    Хэндлер для обработки ввода ваучера. Проверяет код ваучера через API
+    и активирует подписку, если ваучер валиден.
+    """
+    # Извлекаем введённый код ваучера
+    voucher_code = message.text.strip()
+
+    # Отправляем запрос в API для проверки ваучера, передавая tgid и код ваучера
+    response = await api.check_voucher(message.chat.id, voucher_code)
+
+    # Проверяем ответ API
+    if response["Success"]:
+        await message.answer("The voucher has been activated! You have received a subscription.")
+        # Логика активации подписки в API
+        await api.process_voucher(message.chat.id, voucher_code)  # Активируем подписку через API
+    else:
+        await message.answer(f"Error: {response['Reason']}")
+
+    # После обработки очищаем состояние
+    await state.clear()
+#--------------------------------------------------------------------------
 # Хэндлер на /admin
 @router.message(Command('admin'))
 async def menu(message: types.Message):
@@ -36,13 +76,20 @@ async def menu(message: types.Message):
         await message.answer(text, reply_markup=markup, )
 #--------------------------------------------------------------------------
 # #Хэндлер на любой текст 
-# @router.message(F.text)
-# async def anymsg(message: types.Message):
-    # await api.set_target(message)
 @router.message(F.text)
-async def anymsg(message: types.Message, bot: Bot):
-    text, markup = await bot_logic.menu_cmd(message)
-    await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=markup)
+async def anymsg(message: Message, bot: Bot, state: FSMContext):
+    """
+    Хэндлер для всех текстовых сообщений, который проверяет состояние пользователя.
+    Если пользователь не вводит код ваучера, отображается стандартное меню.
+    """
+    # Проверяем текущее состояние пользователя
+    current_state = await state.get_state()
+
+    # Если пользователь не находится в состоянии ожидания ваучера
+    if current_state != VoucherStates.waiting_for_voucher.state:
+        text, markup = await bot_logic.menu_cmd(message)
+        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=markup)
+
 #|===========================[End Commands]===========================|
 
 
@@ -50,9 +97,9 @@ async def anymsg(message: types.Message, bot: Bot):
 
 # CALLBACKS #
 #|=============================[Utils]=============================|
-# Обработчик для callback_data 'back_btn'
+# Обработчик для callback_data 'back'
 @router.callback_query(F.data.startswith("menu "))
-async def back_btn(call: types.CallbackQuery):
+async def back(call: types.CallbackQuery):
     text, markup = await bot_logic.menu_cmd(call.message)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
@@ -67,132 +114,70 @@ async def register_user(call: types.CallbackQuery):
 #|=============================[Admin panel buttons]=============================|
 # Обработчик для callback_data 'admin_users'
 @router.callback_query(F.data.startswith("admin_users "))
-async def admin_users_btn(call: types.CallbackQuery):
+async def admin_users(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_users_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_level'
-@router.callback_query(F.data.startswith("admin_level "))
-async def admin_level_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_level_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_set'
-@router.callback_query(F.data.startswith("admin_set "))
-async def admin_set_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_set_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-    else:
-        print(r['Reason'], flush=True)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_unset'
-@router.callback_query(F.data.startswith("admin_unset "))
-async def admin_set_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_unset_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_balance'
-@router.callback_query(F.data.startswith("admin_balance "))
-async def admin_balance_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_balance_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_users_list'
-@router.callback_query(F.data.startswith("admin_users_list "))
-async def admin_users_list_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_users_list_btn(call.message)
+        text, markup = await bot_logic.admin_users(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'admin_ban'
 @router.callback_query(F.data.startswith("admin_ban "))
-async def admin_ban_btn(call: types.CallbackQuery):
+async def admin_ban(call: types.CallbackQuery):
+    var = call.data.split(" ")
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_ban_btn(call.message)
+        text, markup = await bot_logic.admin_ban(call.message, var[2])
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'admin_unban'
 @router.callback_query(F.data.startswith("admin_unban "))
-async def admin_unban_btn(call: types.CallbackQuery):
+async def admin_unban(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_unban_btn(call.message)
+        text, markup = await bot_logic.admin_unban(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_add_user'
-@router.callback_query(F.data.startswith("admin_add_user "))
-async def admin_add_user_btn(call: types.CallbackQuery):
-    var = call.data.split(" ")
+@router.callback_query(F.data.startswith("admin_create_voucher "))
+async def admin_create_voucher(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_add_user_btn(call.message, var[2])
+        text, markup = await bot_logic.admin_create_voucher(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_level1'
-@router.callback_query(F.data.startswith("admin_level1 "))
-async def admin_level1_btn(call: types.CallbackQuery):
+@router.callback_query(F.data.startswith("admin_create_voucher_one "))
+async def admin_create_voucher_one(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_level1_btn(call.message)
+        text, markup = await bot_logic.admin_create_voucher_one(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_level2'
-@router.callback_query(F.data.startswith("admin_level2 "))
-async def admin_level2_btn(call: types.CallbackQuery):
+@router.callback_query(F.data.startswith("admin_create_voucher_six "))
+async def admin_create_voucher_six(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_level2_btn(call.message)
+        text, markup = await bot_logic.admin_create_voucher_six(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_level3'
-@router.callback_query(F.data.startswith("admin_level3 "))
-async def admin_level3_btn(call: types.CallbackQuery):
+@router.callback_query(F.data.startswith("admin_create_voucher_year "))
+async def admin_create_voucher_year(call: types.CallbackQuery):
     r = await api.is_admin(call.message.chat.id)
     if r['Success']:
-        text, markup = await bot_logic.admin_level3_btn(call.message)
+        text, markup = await bot_logic.admin_create_voucher_year(call.message)
         await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_grep_user'
-@router.callback_query(F.data.startswith("admin_grep_user "))
-async def admin_grep_user_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_grep_user_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-# Обработчик для callback_data 'admin_grep_users'
-@router.callback_query(F.data.startswith("admin_grep_users "))
-async def admin_grep_users_btn(call: types.CallbackQuery):
-    r = await api.is_admin(call.message.chat.id)
-    if r['Success']:
-        text, markup = await bot_logic.admin_grep_users_btn(call.message)
-        await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-#|===========================[End Admin panel buttons]===========================|
+
 
 #|=============================[Menu buttons]=============================|
 # Обработчик для callback_data 'config_gen'
 @router.callback_query(F.data.startswith("config_gen "))
-async def config_gen_btn(call: types.CallbackQuery):
-    text, markup = await bot_logic.config_gen_btn(call.message.chat.id)
+async def config_gen(call: types.CallbackQuery):
+    text, markup = await bot_logic.config_gen(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'countries'
 @router.callback_query(F.data.startswith("config_menu "))
 async def config_menu(call: types.CallbackQuery):
-    text, markup = await bot_logic.config_menu_btn(call.message.chat.id)
+    text, markup = await bot_logic.config_menu(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'delete'
@@ -200,9 +185,9 @@ async def config_menu(call: types.CallbackQuery):
 async def delete(call: types.CallbackQuery):
     await call.message.delete()
 #--------------------------------------------------------------------------
-# Обработчик для callback_data 'test_country'
-@router.callback_query(F.data.startswith("test_country "))
-async def test_country(call: types.CallbackQuery):
+# Обработчик для callback_data 'create_config'
+@router.callback_query(F.data.startswith("create_config "))
+async def create_config(call: types.CallbackQuery):
     """
     Обработчик для callback-запросов, связанных с выбором страны.
     
@@ -212,7 +197,7 @@ async def test_country(call: types.CallbackQuery):
     try:
         _, tgid, hostname = call.data.split(" ")
         # Получаем текст, разметку и файл QR-кода от логики бота
-        text, markup, markup_delete, qr_file = await bot_logic.test_country_btn(call.message, hostname)
+        text, markup, markup_delete, qr_file = await bot_logic.create_config(call.message, hostname)
 
         if qr_file:
             # Попытка отправить файл как фото
@@ -222,55 +207,93 @@ async def test_country(call: types.CallbackQuery):
             )
 
             menu_text = f'''
-                <b>Spoof skuf bot 🏴‍☠️</b>
+                <b>Welcome to Spoof VeilVoyager 🌌</b>
+_______________________
 
-<b>Ваш tgid:</b> <code>{tgid}</code>
-<b>Возможности:</b>
-<i>Создание впн конфигов нажатием одной кнопки</i>
+🚀 **Streamline your VPN setup effortlessly!**  
+Experience seamless connectivity at your fingertips.
 
-<b>Beta 0.3</b>
+<b>Features:</b>
+✨ <i>Create VPN configurations with a single click</i>
+
+<b>Beta 0.4</b>
                 '''
             
             await call.message.answer(text = menu_text, reply_markup=markup)
 
         else:
-            # Если файла нет, отправляем только текст
+            # If no QR file, send only the text
             await call.message.answer(
-                text=text, 
+                text=text,
                 reply_markup=markup
             )
     except FileNotFoundError:
-        # Обработка ситуации, когда файл не найден
+        # Handle case where file is not found
         await call.message.answer(
-            text=f"Файл не найден. Попробуйте позже.\n<code>{text}</code>", 
+            text=f"File not found. Please try again later.\n<code>{text}</code>", 
             reply_markup=markup
         )
     except ValueError as ve:
-        # Обработка ситуации, если данные в callback некорректны
-        logging.error(f"Ошибка в данных callback: {ve}")
+        # Handle case where callback data is incorrect
+        logging.error(f"Error in callback data: {ve}")
         await call.message.answer(
-            text="Некорректные данные. Пожалуйста, попробуйте снова.",
+            text="Invalid data. Please try again.",
             reply_markup=markup
         )
     except Exception as e:
-        # Общая обработка других ошибок
-        logging.error(f"Неизвестная ошибка: {e}")
+        # General error handling
+        logging.error(f"Unknown error: {e}")
         await call.message.answer(
-            text=f"Произошла ошибка при обработке запроса.",
+            text="An error occurred while processing your request.",
             reply_markup=markup
         )
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'learn more'
 @router.callback_query(F.data.startswith("learn_more "))
 async def learn_more(call: types.CallbackQuery):
-    text, markup = await bot_logic.learn_more_btn(call.message.chat.id)
+    text, markup = await bot_logic.learn_more(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 
 
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'account_menu'
 @router.callback_query(F.data.startswith("account_menu "))
-async def account_menu_btn(call: types.CallbackQuery):
-    text, markup = await bot_logic.account_menu_btn(call.message.chat.id)
+async def account_menu(call: types.CallbackQuery):
+    text, markup = await bot_logic.account_menu(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("top_up_ballance "))
+async def top_up_ballance(call: types.CallbackQuery):
+    text, markup = await bot_logic.top_up_ballance(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("pay_subscription "))
+async def pay_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("account_settings "))
+async def account_settings(call: types.CallbackQuery):
+    text, markup = await bot_logic.account_settings(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("pay_with_crypto "))
+async def pay_with_crypto(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_with_crypto(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("one_month_subscription "))
+async def one_month_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.one_month_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("six_months_subscription "))
+async def six_months_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.six_months_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("year_subscription "))
+async def year_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.year_subscription(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------

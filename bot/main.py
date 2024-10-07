@@ -3,6 +3,7 @@ import logging
 import asyncio
 import sys
 from modules import handlers
+from modules.commands import set_bot_commands
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -15,6 +16,7 @@ dp = Dispatcher()
 async def main():
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp.include_routers(handlers.router)
+    await set_bot_commands(bot)
     await dp.start_polling(bot)
 
 

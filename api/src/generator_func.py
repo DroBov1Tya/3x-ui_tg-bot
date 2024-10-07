@@ -3,7 +3,7 @@ import random
 import logging
 import os
 import base64
-from string import ascii_letters, digits
+from string import ascii_letters, digits, ascii_uppercase
 
 logger = logging.getLogger(__name__)
 ascii_letdigest = ascii_letters + digits
@@ -53,7 +53,7 @@ async def create_config(inbound_data: dict) -> str:
         qr = qrcode.QRCode(box_size=10,)
         qr_filename = config_variables["client"]
         qr.add_data(url)
-        img = qr.make_image(back_color=(255, 195, 235), fill_color=(55, 95, 35))
+        img = qr.make_image(back_color=(255, 255, 255), fill_color=(0, 0, 0))
         img.save(f"./qr_code/{qr_filename}.png")
 
         with open(f"./qr_code/{qr_filename}.png", "rb") as f:
@@ -118,3 +118,11 @@ async def string_generator(type: str, length: int) -> str:
     else:
         return None  # Если передан неправильный тип
 #--------------------------------------------------------------------------
+async def voucher_generator() -> str:
+    chars = ascii_uppercase + digits
+    lenght = 12
+    
+    try:
+        return ''.join(random.choices(chars, k=lenght))
+    except Exception as e:
+        logger.error("Ошибка при создании ваучера: %s", e)
