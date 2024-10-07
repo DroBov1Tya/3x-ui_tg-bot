@@ -66,20 +66,19 @@ async def create_config(message, hostname):
     }
 
     r = await http(method='POST', url = "http://api:8000/xui/inbound_creation", headers=headers, data = d)
-
     if not r["Success"]:
-        return None
+        return False, None
+    else:
+        qr_code_dir = "qr_code"
+        if not os.path.exists(qr_code_dir):
+            os.makedirs(qr_code_dir)
 
-    qr_code_dir = "qr_code"
-    if not os.path.exists(qr_code_dir):
-        os.makedirs(qr_code_dir)
+        qr_byte = base64.b64decode(r["qr_data"])
 
-    qr_byte = base64.b64decode(r["qr_data"])
-
-    with tempfile.NamedTemporaryFile(delete=False, dir=qr_code_dir, suffix=".png") as temp_qr_file:
-        temp_qr_file.write(qr_byte)  # Записываем данные QR-кода в файл
-        temp_qr_file_path = temp_qr_file.name
-    return r, temp_qr_file_path
+        with tempfile.NamedTemporaryFile(delete=False, dir=qr_code_dir, suffix=".png") as temp_qr_file:
+            temp_qr_file.write(qr_byte)  # Записываем данные QR-кода в файл
+            temp_qr_file_path = temp_qr_file.name
+        return r, temp_qr_file_path
 #--------------------------------------------------------------------------
 async def servers_count():
     r = await http(f"http://api:8000/xui/servers_count", method='GET', headers=headers)

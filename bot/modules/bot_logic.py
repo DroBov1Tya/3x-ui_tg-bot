@@ -31,7 +31,7 @@ Experience seamless connectivity at your fingertips.
 <b>Features:</b>
 ✨ <i>Create VPN configurations with a single click</i>
 
-<b>Beta 0.4</b>
+<b>Beta 0.5</b>
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
@@ -68,17 +68,17 @@ async def create_config(message, hostname):
     try:
         tgid = message.chat.id
         data, qr_file = await api.create_config(message, hostname)
-        print(data)
-        if data is None:
+        if not data:
             text = "Your subscription has expired, would you like to renew it?"
-            markup = BTN.pay_subscription()
-            markup_delete = BTN.delete_message()
+            markup = BTN.pay_subscription(tgid)
+            markup_delete = BTN.delete_message(tgid)
             return text, markup, markup_delete, None
+        else:
+            print("111")
+            config = data["config"]
 
-        config = data["config"]
-
-        text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
-        return text, markup, markup_delete, qr_file
+            text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
+            return text, markup, markup_delete, qr_file
     
     except Exception as e:
         # Обрабатываем любые исключения, которые могут возникнуть

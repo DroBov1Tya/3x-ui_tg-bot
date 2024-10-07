@@ -216,7 +216,7 @@ Experience seamless connectivity at your fingertips.
 <b>Features:</b>
 ✨ <i>Create VPN configurations with a single click</i>
 
-<b>Beta 0.4</b>
+<b>Beta 0.5</b>
                 '''
             
             await call.message.answer(text = menu_text, reply_markup=markup)
