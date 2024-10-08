@@ -1,5 +1,6 @@
 import base64
 import logging
+import time
 from modules import BTN, api
 from config import logger
 #|=============================[Menu]=============================|
@@ -18,6 +19,7 @@ async def start_cmd(message):
             text, markup = await menu_cmd(message)
         return text, markup
 #--------------------------------------------------------------------------
+
 # Собитие кнопки и команды Menu
 async def menu_cmd(message):
     tgid = message.chat.id
@@ -31,11 +33,12 @@ Experience seamless connectivity at your fingertips.
 <b>Features:</b>
 ✨ <i>Create VPN configurations with a single click</i>
 
-<b>Beta 0.5</b>
+<b>Beta 0.6</b>
 ''', BTN.menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def learn_more(tgid):
+
+async def learn_more(tgid: int):
     text, markup = f'''
 Our VPN Features:
 
@@ -64,6 +67,7 @@ Simple, reliable, and secure.
     ''', BTN.back(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def create_config(message, hostname):
     try:
         tgid = message.chat.id
@@ -74,7 +78,6 @@ async def create_config(message, hostname):
             markup_delete = BTN.delete_message(tgid)
             return text, markup, markup_delete, None
         else:
-            print("111")
             config = data["config"]
 
             text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
@@ -88,28 +91,43 @@ async def create_config(message, hostname):
         markup_delete = BTN.delete_message(tgid)
         return text, markup, markup_delete, None
 #--------------------------------------------------------------------------
-async def config_menu(tgid):
+
+async def config_menu(tgid: int):
     servers = await api.servers_count()
     text, markup = '''
 <b>🏴 Choose VPN country 🏴</b>
 ''', BTN.config_menu(tgid, servers)
     return text, markup
 #--------------------------------------------------------------------------
-async def account_menu(tgid):
-    text, markup = '''
-<b>👤 Account</b>
-Manage your account settings and access various features:
 
-- <i>Top up balance</i> to ensure uninterrupted service.
+async def account_menu(tgid: int):
+    balance = await api.getbalance(tgid)
+    subsctiption = await api.getsubsctiption(tgid)
+    current_time = int(time.time())
 
-- <i>Pay subscription</i> to continue enjoying our premium features.
+    # Формируем статус подписки с помощью отдельной функции
+    subscription_status = await format_subscription_status(subsctiption.get("subscription"), current_time)
 
-- <i>Settings</i> to customize your experience.
+    # Формируем вывод текста с учетом баланса
+    text = f'''
+<b>👤 Your Account</b>
+Here you can manage your account settings and access all available features:
 
-''', BTN.account_menu(tgid)
+💰 <i>Your current balance:</i> <b>{balance.get("balance", 0)} units 💵</b>
+
+📅 <i>Renew subscription</i> to continue enjoying our premium features.
+
+⚙️ <i>Settings</i> to customize your experience to your preferences.
+
+<b>📊 Subscription Status:</b> \n{subscription_status}
+'''
+
+    # Возвращаем текст и разметку
+    markup = BTN.account_menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def top_up_ballance(tgid):
+
+async def top_up_ballance(tgid: int):
     text, markup = '''
 <b>💸 Pay Methods</b>
 We accept payments through the following methods:
@@ -119,7 +137,8 @@ We accept payments through the following methods:
 ''', BTN.top_up_ballance(tgid)
     return text, markup
 #--------------------------------------------------------------------------
-async def pay_subscription(tgid):
+
+async def pay_subscription(tgid: int):
     text, markup = '''
 <b>📅 Subscription Options</b>
 Choose the subscription plan that best suits your needs and enjoy uninterrupted access to our services:
@@ -161,17 +180,20 @@ async def admin_create_voucher(message):
 ''', BTN.admin_create_voucher(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_users(message):
     tgid = message.chat.id
     text, markup = "Управление", BTN.admin_users_menu(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_ban(message, target):
     tgid = message.chat.id
     await api.admin_ban(target)
     text, markup = f"Пользователь {target} забанен", BTN.admin(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_unban(message):
     tgid = message.chat.id
     target = await api.fetch_target(tgid)
@@ -179,6 +201,7 @@ async def admin_unban(message):
     text, markup = f"Пользователь {target} разбанен", BTN.admin(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_add_user(message, target):
     await api.admin_unban(target)
     text, markup = f"Пользователь {target} разбанен", BTN.admin(message.chat.id)
@@ -196,6 +219,7 @@ async def admin_create_voucher_one(message):
     text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_create_voucher_six(message):
     tgid = message.chat.id
     r = await api.admin_create_voucher_six()
@@ -203,9 +227,42 @@ async def admin_create_voucher_six(message):
     text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
     return text, markup
 #--------------------------------------------------------------------------
+
 async def admin_create_voucher_year(message):
     tgid = message.chat.id
     r = await api.admin_create_voucher_year()
     vaucher_code = r.get("voucher")
     text, markup = vaucher_code, BTN.admin_create_voucher(tgid)
     return text, markup
+#--------------------------------------------------------------------------
+
+#|=============================[SRC]=============================|
+async def format_subscription_status(subscription_end: int, current_time: int) -> str:
+    """
+    Форматирует статус подписки с учетом оставшегося времени.
+    """
+    diff = subscription_end - current_time
+
+    if diff <= 0:
+        return "❌ Your subscription has ended."
+
+    days = diff // 86400
+    hours = (diff % 86400) // 3600
+    minutes = (diff % 3600) // 60
+
+    if diff % 60 > 0:
+        minutes += 1
+
+    remaining_time_parts = []
+
+    if days > 0:
+        remaining_time_parts.append(f"🗓️ {days} day{'s' if days > 1 else ''}")
+    if hours > 0:
+        remaining_time_parts.append(f"⏰ {hours} hour{'s' if hours > 1 else ''}")
+    if minutes > 0:
+        remaining_time_parts.append(f"⌛ {minutes} minute{'s' if minutes > 1 else ''}")
+
+    remaining_time = ', '.join(remaining_time_parts)
+
+    return f"Subscription ends in {remaining_time}." if remaining_time else "⌛ Less than a minute left."
+#--------------------------------------------------------------------------

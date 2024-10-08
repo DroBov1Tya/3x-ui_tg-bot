@@ -21,6 +21,7 @@ def admin(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 # [⏳ 1 Month]
 # [🕰️ 6 Months]
 # [🌍 1 Year]
@@ -38,6 +39,7 @@ def admin_create_voucher(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 #[Разбанить]
 #[Отказать]
 def admin_add_user(admin, target):
@@ -65,6 +67,7 @@ def menu(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 # [💰 Top up balance]
 # [💳 Pay subscription]
 # [⚙️ Settings]
@@ -80,6 +83,7 @@ def account_menu(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 # [₿ Pay with crypto]
 # [👤 Back] [🔙 Menu]
 def top_up_ballance(tgid):
@@ -92,6 +96,7 @@ def top_up_ballance(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 # [⏳ 1 Month Subscription]
 # [🕰️ 6 Months Subscription]
 # [🌍 1 Year Subscription]
@@ -109,6 +114,8 @@ def pay_subscription(tgid):
         [btn4, btn5]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
 #|=============================[Utilities]=============================|
 #[❌ Delete]
 def delete_message(tgid):
@@ -119,6 +126,7 @@ def delete_message(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+
 # [🔙 Menu]
 def back(tgid):
     btn1 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
@@ -194,3 +202,4 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
+

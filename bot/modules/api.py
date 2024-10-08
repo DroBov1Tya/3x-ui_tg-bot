@@ -134,3 +134,11 @@ async def process_voucher(tgid: int, voucher: str):
         # Обработка ошибок
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
+async def getbalance(tgid: int):
+    r = await http(f"http://api:8000/user/getbalance/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+async def getsubsctiption(tgid: int):
+    r = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------

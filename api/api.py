@@ -30,15 +30,22 @@ async def handle_exception(ex: Exception) -> Dict[str, Any]:
 
 
 #|=============================[User panel]=============================|
-# 1. /user/
+# 1. /user/create
 async def sync_sequence():
-    query = """
+    """
+    """
+
+    query = '''
     SELECT setval(
         'users_id_seq', 
         (SELECT COALESCE(MAX(id), 1) FROM users)
     );
-    """
-    await pg.execute(query)
+    '''
+
+    try:
+        await pg.execute(query)
+    except Exception as ex:
+        return await handle_exception(ex)
 
 async def user_create(data: Dict[str, Any]) -> Dict[str, Any]:
     # Синхронизируем последовательность перед вставкой новых данных
@@ -58,40 +65,39 @@ async def user_create(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     values = (tgid, nickname, first_name, last_name, True)
     
-    r = await pg.fetch(query, *values)
-    if r is None:
-        return {"Success": False, "Reason": "User already exists"}
-    else:
-        return {"Success": True}
+    try:
+        r = await pg.fetch(query, *values)
+        if r is None:
+            return {"Success": False, "Reason": "User already exists"}
+        else:
+            return {"Success": True}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
 # 2. /user/{tgid}
-async def user_info(tgid: str) -> Dict[str, Any]: #DONE
-    query = """
+async def user_info(tgid: str) -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
         SELECT * FROM users WHERE tgid = $1;
-    """
+    '''
     
-    r = await pg.fetch(query, tgid)
+    try:
+        r = await pg.fetch(query, tgid)
 
-    if r is None:
-        return {"Success": False, "Reason": "User not found"}
-    else:
-        return {"Success": True, "user": r }
+        if r is None:
+            return {"Success": False, "Reason": "User not found"}
+        else:
+            return {"Success": True, "user": r }
+        
+    except Exception as ex:
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 3. /user/isadmin
-async def is_admin(tgid: str) -> Dict[str, Any]:
-    query = """
-        SELECT is_admin FROM users WHERE tgid = $1;
-    """
-
-    r = await pg.fetch(query, tgid)
-
-    if r['is_admin'] is False:
-        return {"Success": False, "Reason": "User not admin"}
-    else:
-        return {"Success": True}
-#--------------------------------------------------------------------------
+# 3. /user/checkvoucher
 async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Функция для проверки ваучера в базе данных. 
@@ -103,34 +109,29 @@ async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Результат проверки ваучера (успех, ошибки, статус ваучера).
     """
+
     voucher_code = data.get("voucher_code")
 
     if not voucher_code:
         return {"Success": False, "Reason": "Voucher code is missing."}
 
-    # SQL-запрос для получения информации о ваучере
     query_voucher = '''
     SELECT duration, is_used, expires_at FROM vouchers WHERE code = $1;
     '''
     
     try:
-        # Выполняем запрос к БД для получения данных о ваучере
         voucher = await pg.fetch(query_voucher, voucher_code)
 
-        # Если ваучер не найден
         if not voucher:
             return {"Success": False, "Reason": "Voucher not found."}
 
-        # Проверяем, был ли ваучер уже использован
         if voucher["is_used"]:
             return {"Success": False, "Reason": "Voucher has already been used."}
 
-        # Проверяем срок действия ваучера (если истек, ваучер не активен)
         current_time = int(time.time())
         if voucher["expires_at"] < current_time:
             return {"Success": False, "Reason": "Voucher has expired."}
 
-        # Если ваучер активен и не использован
         return {
             "Success": True
         }
@@ -138,8 +139,10 @@ async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 4. /user/activatevoucher
 async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
+    '''
     Функция активации ваучера и обновления срока подписки пользователя.
 
     Args:
@@ -147,44 +150,38 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
     Returns:
         dict: Результат активации (успех или ошибка).
-    """
+    '''
+
     tgid = int(data.get("tgid"))
     voucher_code = str(data.get("voucher_code"))
 
-    # Проверяем наличие необходимых параметров
     if not tgid or not voucher_code:
         logging.error("TGID or voucher code is missing.")
         return {"Success": False, "Reason": "TGID or voucher code is missing."}
 
-    # Шаг 1: Проверка ваучера в базе данных
     query_voucher = '''
     SELECT duration, is_used, expires_at FROM vouchers WHERE code = $1;
     '''
     try:
         voucher = await pg.fetch(query_voucher, voucher_code)
 
-        # Проверка существования ваучера
         if not voucher:
             logging.error(f"Voucher with code {voucher_code} not found.")
             return {"Success": False, "Reason": "Voucher not found."}
         
-        # Проверка на уже использованный ваучер
         if voucher["is_used"]:
             logging.error(f"Voucher {voucher_code} has already been used.")
             return {"Success": False, "Reason": "Voucher has already been used."}
 
-        # Проверка срока действия ваучера
         current_time = int(time.time())
         if voucher["expires_at"] < current_time:
             logging.error(f"Voucher {voucher_code} has expired.")
             return {"Success": False, "Reason": "Voucher has expired."}
 
-        # Шаг 2: Расчёт нового срока действия подписки
-        voucher_duration = int(voucher["duration"])  # Длительность уже в секундах
-        new_sub_expiration = current_time + voucher_duration  # Новое время окончания подписки
+        voucher_duration = int(voucher["duration"])
+        new_sub_expiration = current_time + voucher_duration
         logging.info(f"New subscription expiration for TGID {tgid}: {new_sub_expiration} (Unix time)")
 
-        # Шаг 3: Обновление таблицы users (замена старого времени на новое)
         query_update_sub = '''
         UPDATE users 
         SET sub = $1 
@@ -199,7 +196,6 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
         logging.info(f"Subscription for TGID {tgid} updated successfully with ID: {result_sub['id']}")
 
-        # Шаг 4: Отметить ваучер как использованный
         query_update_voucher = '''
         UPDATE vouchers 
         SET is_used = true 
@@ -220,50 +216,147 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
         logging.error(f"Error during voucher activation: {str(ex)}")
         return {"Success": False, "Reason": "Internal server error."}
 #--------------------------------------------------------------------------
+
+# 5. /user/getbalance/{tgid}
+async def getbalance(tgid: int) -> Dict[str, Any]:
+    """
+    """
+    
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    
+    query = '''
+        SELECT balance
+        FROM users
+        WHERE tgid = $1;
+    '''
+    
+    try:
+        r = await pg.fetch(query, tgid)
+        if r is None:
+            return {"Success": False, "Reason": "Can't find balance"}
+        else:
+            balance = r['balance']
+            return {"Success": True, "balance": balance}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 6. /user/getsubscription/{tgid}
+async def getsubscription(tgid: int) -> Dict[str, Any]:
+    """
+    Получение времени подписки по идентификатору Telegram пользователя.
+    """
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    
+    query = '''
+        SELECT sub
+        FROM users
+        WHERE tgid = $1;
+    '''
+
+    try:
+        r = await pg.fetch(query, tgid)  
+        if not r:
+            return {"Success": False, "Reason": "Can't find subscription"}
+        else:
+            subscription = r['sub']
+            return {"Success": True, "subscription": subscription}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
 #|=============================[End User panel]=============================|
 
 #|=============================[Admin panel]=============================|
-# 1. /admin/
+# 1. /admin/isadmin/{tgid}
+async def is_admin(tgid: str) -> Dict[str, Any]:
+    query = """
+        SELECT is_admin FROM users WHERE tgid = $1;
+    """
+    try:
+        r = await pg.fetch(query, tgid)
+
+        if r['is_admin'] is False:
+            return {"Success": False, "Reason": "User not admin"}
+        else:
+            return {"Success": True}
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 2. /admin/ban/{tgid}
 async def admin_ban(tgid: str) -> Dict[str, Any]:
 
     query = """
-
+    UPDATE users
+    SET is_banned = TRUE
+    WHERE tgid = $1;
     """
-    r = await pg.fetch(
-        "UPDATE users SET is_banned = TRUE WHERE tgid = $1;", 
-        tgid
-    )
-    if r is None:
-        {"Success": False, "Reason": "User not found"}
-    else:
-        return {"Success": True, "result": r}
-#--------------------------------------------------------------------------
-# 2. /admin/
-async def admin_unban(tgid: str) -> Dict[str, Any]:
-    r = await pg.fetch(
-        "UPDATE users SET is_banned = FALSE WHERE tgid = $1;", 
-        tgid
-    )
-    if r is None:
-        {"Success": False, "Reason": "User not found"}
-    else:
-        return {"Success": True, "result": r}
-#--------------------------------------------------------------------------
-# 3. /admin/
-async def admin_fetchadmins() -> Dict[str, Any]:
-    query = '''
-    SELECT tgid FROM users WHERE is_admin = True
-'''
 
-    r = await pg.fetchall(query)
-    if r is None:
-        {"Success": False, "Reason": "No found admins"}
-    else:
-        ids = []
-        for admin in r:
-            ids.append(admin['tgid'])
-        return {"Success": True, "result": ids}
+    try:
+        r = await pg.fetch(query, tgid)
+        if r is None:
+            {"Success": False, "Reason": "User not found"}
+        else:
+            return {"Success": True, "result": r}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 3. /admin/unban/{tgid}
+async def admin_unban(tgid: str) -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
+    UPDATE users
+    SET is_banned = FALSE
+    WHERE tgid = $1;
+    '''
+
+    try:
+        r = await pg.fetch(query, tgid)
+        if r is None:
+            {"Success": False, "Reason": "User not found"}
+        else:
+            return {"Success": True, "result": r}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 4. /admin/fetchadmins
+async def admin_fetchadmins() -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
+    SELECT tgid 
+    FROM users 
+    WHERE is_admin = True;
+    '''
+
+    try:
+        r = await pg.fetchall(query)
+        if r is None:
+            {"Success": False, "Reason": "No found admins"}
+        else:
+            ids = []
+            for admin in r:
+                ids.append(admin['tgid'])
+            return {"Success": True, "result": ids}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 5. /admin/voucherone
 async def admin_create_voucher_one():
     """
     Функция для создания ваучера на 1 месяц подписки.
@@ -293,21 +386,21 @@ async def admin_create_voucher_one():
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 6. /admin/vouchersix
 async def admin_create_voucher_six():
     """
     Функция для создания ваучера на 6 месяцев подписки.
     Длительность ваучера указана в секундах (6 месяцев = 15552000 секунд).
     """
+
     voucher_code = await voucher_generator()
 
-    # Длительность подписки (180 дней в секундах)
-    duration = 15552000  # 180 дней * 24 часа * 60 минут * 60 секунд
+    duration = 15552000 
 
-    # Текущее время в Unix формате
     current_time = int(time.time())
 
-    # Дата истечения действия ваучера через 6 месяцев в Unix-время
-    expires_at = current_time + duration  # Текущее время + 180 дней
+    expires_at = current_time + duration
 
     query = '''
     INSERT INTO vouchers (code, discount_type, duration, is_used, created_at, expires_at)
@@ -322,6 +415,8 @@ async def admin_create_voucher_six():
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 7. /admin/voucheryear
 async def admin_create_voucher_year():
     """
     Функция для создания ваучера на 1 год подписки.
@@ -351,40 +446,9 @@ async def admin_create_voucher_year():
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
-#|=============================[End Admin panel]=============================|
 
 #|=============================[XUI panel]=============================|
-# 1. /xui/
-async def xui_login(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Выполняет логин в api XUI и возвращает заголовок аутентификации.
-
-    Args:
-        data (Dict[str, Any]): Входные данные, содержащие имя пользователя, пароль и путь полученные при вполнении функции init_server().
-
-    Returns:
-        Dict[str, Any]: Заголовок аутентификации 3x-ui или сообщение об ошибке.
-    """
-
-    username: str = data.get("username")
-    password: str = data.get("passwd")
-    web_path: str = data.get("web_path")
-
-    if not all([username, password, web_path]):
-        logger.error("Missing required fields in input data: %s", data)
-        return {"Success": False, "Reason": "Missing username, password, or web_path"}
-
-    try:
-        # Вызов функции для логина
-        auth_headers = await xui_func.login(username, password, web_path)
-        logger.info("Successfully logged in for user: %s", username)
-        return {"Success": True, "auth_headers": auth_headers}
-    
-    except Exception as ex:
-        return await handle_exception(ex)
-#--------------------------------------------------------------------------
-
-# 3. /xui/
+# 1. /xui/init_server
 async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
     Инициализация сервера по предоставленным данным.
@@ -459,9 +523,39 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
 
     except Exception as ex:
         return await handle_exception(ex)
-#-------------------------------------------------------------------------- 
+#--------------------------------------------------------------------------
 
-# 4. /xui/
+# 2. /xui/xui_login
+async def xui_login(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Выполняет логин в api XUI и возвращает заголовок аутентификации.
+
+    Args:
+        data (Dict[str, Any]): Входные данные, содержащие имя пользователя, пароль и путь полученные при вполнении функции init_server().
+
+    Returns:
+        Dict[str, Any]: Заголовок аутентификации 3x-ui или сообщение об ошибке.
+    """
+
+    username: str = data.get("username")
+    password: str = data.get("passwd")
+    web_path: str = data.get("web_path")
+
+    if not all([username, password, web_path]):
+        logger.error("Missing required fields in input data: %s", data)
+        return {"Success": False, "Reason": "Missing username, password, or web_path"}
+
+    try:
+        # Вызов функции для логина
+        auth_headers = await xui_func.login(username, password, web_path)
+        logger.info("Successfully logged in for user: %s", username)
+        return {"Success": True, "auth_headers": auth_headers}
+    
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 3. /xui/inbound_creation
 async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
     """
     Создание нового впн клиента и запись его в базу данных.
@@ -532,6 +626,8 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 4. /xui/servers_count
 async def servers_count() -> Dict[str, Union[bool, str, Any]] :
     """
     Забирает из БД информацию о активных серверов для динамического вывода кнопок в бота
@@ -558,6 +654,8 @@ async def servers_count() -> Dict[str, Union[bool, str, Any]] :
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 5. /xui/server_info/{hostname}
 async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
     """
     Забирает из БД информацию о одном конкретном сервере
@@ -582,6 +680,8 @@ async def server_info(hostname) -> Dict[str, Union[bool, str, Any]] :
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 6. /xui/remove_configs/{hostname}
 async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
     """
     Удаление конфигураций по hostname.
@@ -603,7 +703,7 @@ async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
     except Exception as ex:
         logger.error(f"Ошибка при удалении конфигураций для хоста {hostname}: {str(ex)}")
         return await handle_exception(ex)
-#|=============================[End XUI panel]=============================|
+
 
 #|===============================[Servers panel]===============================|
 # 1. /servers/add_server
@@ -654,6 +754,8 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as ex:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
+
+# 2. /servers/get_servers
 async def get_servers() -> Dict[str, Any]:
     query = '''
         SELECT * FROM servers WHERE is_alive is TRUE;
@@ -678,6 +780,8 @@ async def get_servers() -> Dict[str, Any]:
         logger.exception("Unexpected error during inbound creation")
         return {"Success": False, "Reason": f"Unexpected error: {ex}"}
 #--------------------------------------------------------------------------
+
+# 3. /servers/server_down
 async def server_down(data: Dict[str, Any]) -> Dict[str, Any]:
     host: str = data.get("hostname")
     query = '''
@@ -691,4 +795,3 @@ async def server_down(data: Dict[str, Any]) -> Dict[str, Any]:
     
     except Exception as ex:
         return await handle_exception(ex)
-#|=============================[End Servers panel]=============================|

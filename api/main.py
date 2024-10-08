@@ -10,76 +10,113 @@ app = api_init()
 
 # routes #
 #|=============================[User routes]=============================|
-# 1. /user/
+# 1. /user/create
 @app.post("/user/create", tags=[Tags.user], summary="Register user")
 async def user_create(data = Body(example=ex.user_create)):
     r = await api.user_create(data)
     return r
 #--------------------------------------------------------------------------
+
+# 2. /user/{tgid}
 @app.get("/user/{tgid}", tags=[Tags.user], summary="User info")
 async def user_info(tgid: int):
     r = await api.user_info(tgid)
     return r
 #--------------------------------------------------------------------------
+
+# 3. /user/checkvoucher
 @app.post("/user/checkvoucher", tags=[Tags.user], summary="Voucher check")
 async def checkvoucher(data = Body(example=ex.user_create)):
     r = await api.checkvoucher(data)
     return r
 #--------------------------------------------------------------------------
+
+# 4. /user/activatevoucher
 @app.post("/user/activatevoucher", tags=[Tags.user], summary="Voucher activate")
 async def activate_voucher(data = Body(example=ex.user_create)):
     r = await api.activate_voucher(data)
     return r
 #--------------------------------------------------------------------------
+
+# 5. /user/getbalance/{tgid}
+@app.get("/user/getbalance/{tgid}", tags=[Tags.user], summary="Voucher activate")
+async def getbalance(tgid: int):
+    r = await api.getbalance(tgid)
+    return r
+#--------------------------------------------------------------------------
+
+# 6. /user/getsubscription/{tgid}
+@app.get("/user/getsubscription/{tgid}", tags=[Tags.user], summary="Voucher activate")
+async def getsubscription(tgid: int):
+    r = await api.getsubscription(tgid)
+    return r
+#--------------------------------------------------------------------------
 #|=============================[End User routes]=============================|
 
 #|=============================[Admin routes]=============================|
+# 1. /admin/isadmin/{tgid}
 @app.get("/admin/isadmin/{tgid}", tags=[Tags.admin], summary="Is admin")
 async def is_admin(tgid: int):
     r = await api.is_admin(tgid)
     return r
 #--------------------------------------------------------------------------
+
+# 2. /admin/ban/{tgid}
 @app.get("/admin/ban/{tgid}", tags=[Tags.admin], summary="Set admin")
 async def admin_ban(tgid: int):
     r = await api.admin_ban(tgid)
     return r
 #--------------------------------------------------------------------------
+
+# 3. /admin/unban/{tgid}
 @app.get("/admin/unban/{tgid}", tags=[Tags.admin], summary="Ban user")
 async def admin_unban(tgid: int):
     r = await api.admin_unban(tgid)
     return r
 #--------------------------------------------------------------------------
+
+# 4. /admin/fetchadmins
 @app.get("/admin/fetchadmins", tags=[Tags.admin], summary="Get all users")
 async def admin_fetchadmins():
     r = await api.admin_fetchadmins()
     return r
 #--------------------------------------------------------------------------
+
+# 5. /admin/voucherone
 @app.get("/admin/voucherone", tags=[Tags.admin], summary="Create 1 month voucher")
 async def admin_create_voucher_one():
     r = await api.admin_create_voucher_one()
     return r
 #--------------------------------------------------------------------------
+
+# 6. /admin/vouchersix
 @app.get("/admin/vouchersix", tags=[Tags.admin], summary="Create 6 month voucher")
 async def admin_create_voucher_six():
     r = await api.admin_create_voucher_six()
     return r
 #--------------------------------------------------------------------------
+
+# 7. /admin/voucheryear
 @app.get("/admin/voucheryear", tags=[Tags.admin], summary="Create year voucher")
 async def admin_create_voucher_year():
     r = await api.admin_create_voucher_year()
     return r
 #--------------------------------------------------------------------------
 
+#|=============================[xui routes]=============================|
+# 1. /xui/init_server
 @app.post("/xui/init_server", tags=[Tags.x_ui], summary="server initialization")
 async def init_server(dict = Body(example=ex.init_server)):
     r = await api.init_server(dict)
     return r
 #--------------------------------------------------------------------------
+# 2. /xui/xui_login
 @app.post("/xui/xui_login", tags=[Tags.x_ui], summary="xui login")
 async def xui_login(json = Body(example=ex.xui_login)):
     r = await api.xui_login(json)
     return r
 #--------------------------------------------------------------------------
+# 3. /xui/inbound_creation
 @app.post("/xui/inbound_creation", tags=[Tags.x_ui], summary="inbound creation")
 async def inbound_creation(json = Body(example=ex.inbound_creation)):
     print("Inbound creation handled")
@@ -91,37 +128,50 @@ async def inbound_creation(json = Body(example=ex.inbound_creation)):
     #     qr_file = FileResponse(f"./qr_code/qr_image.png", media_type='application/octet-stream', filename=f"qr_image.png")
     #     return qr_file
 #--------------------------------------------------------------------------
+# 4. /xui/servers_count
 @app.get("/xui/servers_count", tags=[Tags.x_ui], summary="servers_count")
 async def servers_count():
     r = await api.servers_count()
     return r
 #--------------------------------------------------------------------------
+# 5. /xui/server_info/{hostname}
 @app.get("/xui/server_info/{hostname}", tags=[Tags.x_ui], summary="servers_count")
 async def server_info(hostname: str):
     decoded_hostname = urllib.parse.unquote(hostname)
     r = await api.server_info(decoded_hostname)
     return r
 #--------------------------------------------------------------------------
+# 6. /xui/remove_configs/{hostname}
 @app.get("/xui/remove_configs/{hostname}", tags=[Tags.x_ui], summary="remove_configs")
 async def remove_configs(hostname: str):
     r = await api.remove_configs(hostname)
     return r
 #--------------------------------------------------------------------------
+
+#|=============================[servers routes]=============================|
+# 1. /servers/add_server
 @app.post("/servers/add_server", tags=[Tags.servers], summary="add server")
 async def add_server(dict = Body(example=ex.add_server)):
     r = await api.add_server(dict)
     return r
 #--------------------------------------------------------------------------
+
+# 2. /servers/get_servers
 @app.get("/servers/get_servers", tags=[Tags.servers], summary="get server")
 async def add_server():
     r = await api.get_servers()
     return r
 #--------------------------------------------------------------------------
+
+# 3. /servers/server_down
 @app.post("/servers/server_down", tags=[Tags.servers], summary="disable server")
 async def server_down(dict = Body(example=ex.server_down)):
     r = await api.server_down(dict)
     return r
 #--------------------------------------------------------------------------
+
+#|=============================[redis routes]=============================|
+# 1. /redis_get_all
 @app.get("/redis_get_all", tags=[Tags.x_ui], summary="inbound creation")
 async def redis_get_all():
     r = await api.redis_get_all()
