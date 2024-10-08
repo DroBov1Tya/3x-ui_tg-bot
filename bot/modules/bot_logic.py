@@ -38,6 +38,23 @@ Experience seamless connectivity at your fingertips.
     return text, markup
 #--------------------------------------------------------------------------
 
+async def help_cmd(tgid):
+    text, markup = '''
+<b>🛠 Configuration Guide</b>
+
+We're here to help you set up the configs on any platform all by yourself! Whether you're using Android, iOS, or a PC, our guides are designed to make the process as simple and hassle-free as possible.
+
+📖 <b>Step-by-step instructions</b> will walk you through the entire setup process. No technical headaches—just follow the steps, and everything will work perfectly.
+
+💡 <b>No unnecessary steps</b>—we've streamlined the process so you can get everything set up quickly and easily, without needing expert help.
+
+🔧 <b>Support is available</b> if you run into any questions, but we're confident you'll be able to handle it on your own!
+
+Choose your platform below and follow the guide:
+''', BTN.help(tgid)
+    return text, markup
+#--------------------------------------------------------------------------
+
 async def learn_more(tgid: int):
     text, markup = f'''
 Our VPN Features:

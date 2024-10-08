@@ -115,11 +115,25 @@ def pay_subscription(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+def help(tgid):
+    telegraph_links = {
+    'android': 'https://telegra.ph/VPN-Configuration-Guide-for-Android-10-08',
+    'ios': 'https://telegra.ph/VPN-Configuration-Guide-10-08',
+    'pc': 'https://telegra.ph/VPN-Configuration-Guide-for-PC-10-08'
+    }
 
+    btn1 = InlineKeyboardButton(text='🤖 Android', url=telegraph_links['android'])
+    btn2 = InlineKeyboardButton(text='🍏 iOS', url=telegraph_links['ios'])
+    btn3 = InlineKeyboardButton(text='💻 PC', url=telegraph_links['pc'])
+    btn4 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
+    buttons = [
+        [btn1, btn2, btn3],
+        [btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 #|=============================[Utilities]=============================|
 #[❌ Delete]
 def delete_message(tgid):
-    
     btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
         [btn1],

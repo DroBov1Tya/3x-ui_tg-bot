@@ -154,6 +154,7 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
     tgid = int(data.get("tgid"))
     voucher_code = str(data.get("voucher_code"))
+    old_voucher = int(data.get("subscription"))
 
     if not tgid or not voucher_code:
         logging.error("TGID or voucher code is missing.")
@@ -178,8 +179,9 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
             logging.error(f"Voucher {voucher_code} has expired.")
             return {"Success": False, "Reason": "Voucher has expired."}
 
+
         voucher_duration = int(voucher["duration"])
-        new_sub_expiration = current_time + voucher_duration
+        new_sub_expiration = max(current_time, old_voucher) + voucher_duration
         logging.info(f"New subscription expiration for TGID {tgid}: {new_sub_expiration} (Unix time)")
 
         query_update_sub = '''

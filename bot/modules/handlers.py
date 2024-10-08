@@ -28,12 +28,14 @@ async def start(message: types.Message):
     text, markup = await bot_logic.start_cmd(message)
     await message.answer(text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
 # Хэндлер на /menu
 @router.message(Command('menu'))
 async def menu(message: types.Message):
     text, markup = await bot_logic.menu_cmd(message)
     await message.answer(text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
 # Хэндлер на команду /voucher
 @router.message(Command("voucher"))
 async def start_voucher_process(message: Message, state: FSMContext):
@@ -67,9 +69,15 @@ async def process_voucher_input(message: Message, state: FSMContext):
     # После обработки очищаем состояние
     await state.clear()
 #--------------------------------------------------------------------------
+
+@router.message(Command('help'))
+async def help(message: types.Message):
+    text, markup = await bot_logic.help_cmd(message.chat.id)
+    await message.answer(text, reply_markup=markup)
+
 # Хэндлер на /admin
 @router.message(Command('admin'))
-async def menu(message: types.Message):
+async def admin(message: types.Message):
     r = await api.is_admin(message.chat.id)
     if r['Success']:
         text, markup = await bot_logic.admins_cmd(message)
@@ -103,6 +111,7 @@ async def back(call: types.CallbackQuery):
     text, markup = await bot_logic.menu_cmd(call.message)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
 # Коллбек на кнопку приятия соглашения 
 @router.callback_query(F.data.startswith("agree "))
 async def register_user(call: types.CallbackQuery):

@@ -120,14 +120,17 @@ async def process_voucher(tgid: int, voucher: str):
     Returns:
         dict: Ответ от API с результатом активации ваучера.
     """
-    # Формируем данные для отправки
-    data = {
-        "tgid": tgid,
-        "voucher_code": voucher
-    }
-
+    
     # Отправляем POST-запрос в API для активации ваучера
     try:
+        subscription_request = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
+
+        data = {
+                "tgid": tgid,
+                "voucher_code": voucher,
+                "subscription" : subscription_request.get("subscription")
+            }
+
         r = await http(f"http://api:8000/user/activatevoucher", method='POST', data=data)
         return r
     except Exception as ex:
@@ -135,10 +138,18 @@ async def process_voucher(tgid: int, voucher: str):
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
 async def getbalance(tgid: int):
-    r = await http(f"http://api:8000/user/getbalance/{tgid}", method='GET', headers=headers)
-    return r
+    try:
+        r = await http(f"http://api:8000/user/getbalance/{tgid}", method='GET', headers=headers)
+        return r
+    except Exception as ex:
+        # Обработка ошибок
+        return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
 async def getsubsctiption(tgid: int):
-    r = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
-    return r
+    try:
+        r = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
+        return r
+    except Exception as ex:
+        # Обработка ошибок
+        return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
