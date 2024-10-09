@@ -118,7 +118,7 @@ async def check_voucher(tgid: int, voucher: str):
 
     # Отправляем POST-запрос в API для проверки ваучера
     try:
-        r = await http(f"http://api:8000/user/checkvoucher", method='POST', data=data)
+        r = await http(f"http://api:8000/user/checkvoucher", method='POST', data=data, headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок

@@ -70,10 +70,10 @@ async def learn_more(tgid: int):
 #--------------------------------------------------------------------------
 
 async def create_config(message, hostname):
+    tgid = message.chat.id
     language = await api.check_language(tgid)
     try:
         if language.get("lang") == "en":
-            tgid = message.chat.id
             data, qr_file = await api.create_config(message, hostname)
             if not data:
                 text = "Your subscription has expired, would you like to renew it?"
@@ -87,7 +87,6 @@ async def create_config(message, hostname):
                 return text, markup, markup_delete, qr_file
             
         elif language.get("lang") == "ru":
-            tgid = message.chat.id
             data, qr_file = await api.create_config(message, hostname)
             if not data:
                 text = "Your subscription has expired, would you like to renew it?"
