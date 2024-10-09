@@ -10,7 +10,8 @@ CREATE TABLE users (
     user_level      SMALLINT DEFAULT 0, /* 0 - demo, 1 - basic, 2 - advanced, 3 - premium */
     is_banned       boolean NOT NULL DEFAULT true,
     is_admin        boolean NOT NULL DEFAULT false,
-    sub             BIGINT, /* Unix time для окончания подписки */
+    sub             BIGINT NOT NULL DEFAULT 0, /* Unix time для окончания подписки */
+    lang            TEXT NOT NULL DEFAULT 'en',
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

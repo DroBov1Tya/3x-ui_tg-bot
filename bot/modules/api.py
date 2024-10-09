@@ -24,34 +24,47 @@ async def create_user(message):
     r = await http(f"http://api:8000/user/create", method='POST', data=d, headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def user_info(tgid): #DONE
     r = await http(f"http://api:8000/user/{tgid}", headers=headers)
     return r
 #--------------------------------------------------------------------------
+
+async def agree(tgid):
+    r = await http(f"http://api:8000/user/agree/{tgid}", headers=headers)
+    return r
+#--------------------------------------------------------------------------
+
 async def is_admin(tgid):
     r = await http(f"http://api:8000/admin/isadmin/{tgid}", headers=headers, method="GET")
     return r
 #--------------------------------------------------------------------------
+
 async def admin_ban(tgid):
     r = await http(f"http://api:8000/admin/ban/{tgid}", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def admin_unban(tgid):
     r = await http(f"http://api:8000/admin/unban/{tgid}", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def admin_create_voucher_one():
     r = await http(f"http://api:8000/admin/voucherone", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def admin_create_voucher_six():
     r = await http(f"http://api:8000/admin/vouchersix", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def admin_create_voucher_year():
     r = await http(f"http://api:8000/admin/voucheryear", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def create_config(message, hostname):
 
     encoded_hostname = urllib.parse.quote(hostname)
@@ -80,10 +93,12 @@ async def create_config(message, hostname):
             temp_qr_file_path = temp_qr_file.name
         return r, temp_qr_file_path
 #--------------------------------------------------------------------------
+
 async def servers_count():
     r = await http(f"http://api:8000/xui/servers_count", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
+
 async def check_voucher(tgid: int, voucher: str):
     """
     Функция для отправки запроса в API для проверки ваучера.
@@ -109,6 +124,7 @@ async def check_voucher(tgid: int, voucher: str):
         # Обработка ошибок
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
+
 async def process_voucher(tgid: int, voucher: str):
     """
     Функция для отправки запроса в API для активации ваучера.
@@ -137,6 +153,7 @@ async def process_voucher(tgid: int, voucher: str):
         # Обработка ошибок
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
+
 async def getbalance(tgid: int):
     try:
         r = await http(f"http://api:8000/user/getbalance/{tgid}", method='GET', headers=headers)
@@ -145,11 +162,32 @@ async def getbalance(tgid: int):
         # Обработка ошибок
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
+
 async def getsubsctiption(tgid: int):
     try:
         r = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+async def set_language(tgid, lang):
+    data = {
+        "lang" : lang,
+        "tgid" : tgid
+    }
+    try:
+        r = await http(method="POST", url="http://api:8000/user/setlanguage", data=data, headers=headers)
+        return r
+    except Exception as ex:
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+async def check_language(tgid):
+    try:
+        r = await http(f"http://api:8000/user/checklanguage/{tgid}", method='GET', headers=headers)
+        return r
+    except Exception as ex:
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------

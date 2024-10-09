@@ -2,6 +2,7 @@ from aiogram import BaseMiddleware
 from typing import Callable, Awaitable, Dict, Any
 from aiogram.types import Update
 from modules.api import user_info
+from modules import bot_logic
 
 
 async def get_user_info(tgid) -> dict:
@@ -25,7 +26,8 @@ class callback_middleware(BaseMiddleware):
             # TODO: regme
         
         if user_info['user']['is_banned']:
-            print("You are not able to use this bot! (send request to ADMIN)", flush=True)
+            await handler(event, data)
+            return
         
         else:
             await handler(event, data)

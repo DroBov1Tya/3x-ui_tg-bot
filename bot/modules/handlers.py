@@ -43,7 +43,7 @@ async def start_voucher_process(message: Message, state: FSMContext):
     Хэндлер для команды /voucher. Отправляет сообщение с просьбой ввести код ваучера
     и переводит пользователя в состояние ожидания кода ваучера.
     """
-    await message.answer("Введите код ваучера:")
+    await message.answer("🎫 Enter voucher code:")
     # Устанавливаем состояние ожидания ваучера
     await state.set_state(VoucherStates.waiting_for_voucher)
 @router.message(StateFilter(VoucherStates.waiting_for_voucher))
@@ -74,6 +74,13 @@ async def process_voucher_input(message: Message, state: FSMContext):
 async def help(message: types.Message):
     text, markup = await bot_logic.help_cmd(message.chat.id)
     await message.answer(text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+@router.message(Command('language'))
+async def help(message: types.Message):
+    text, markup = await bot_logic.language_cmd(message.chat.id)
+    await message.answer(text, reply_markup=markup)
+#--------------------------------------------------------------------------
 
 # Хэндлер на /admin
 @router.message(Command('admin'))
@@ -114,10 +121,19 @@ async def back(call: types.CallbackQuery):
 
 # Коллбек на кнопку приятия соглашения 
 @router.callback_query(F.data.startswith("agree "))
-async def register_user(call: types.CallbackQuery):
-    # await api.create_user(call.message)
-    text, markup = await bot_logic.agree(call.message)
+async def agree(call: types.CallbackQuery):
+    text, markup = await bot_logic.agree(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+@router.callback_query(F.data.startswith("decline "))
+async def decline(call: types.CallbackQuery):
+    text, markup = await bot_logic.decline(call.message.chat.id)
+    try:
+        # Вместо редактирования сообщения, отправляем новое сообщение
+        await call.bot.send_message(chat_id=call.message.chat.id, text=text, reply_markup=markup)
+    except Exception as e:
+        print(f"Error sending message: {e}")
 #|===========================[End utils]===========================|
 
 #|=============================[Admin panel buttons]=============================|
@@ -183,17 +199,20 @@ async def config_gen(call: types.CallbackQuery):
     text, markup = await bot_logic.config_gen(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
 # Обработчик для callback_data 'countries'
 @router.callback_query(F.data.startswith("config_menu "))
 async def config_menu(call: types.CallbackQuery):
     text, markup = await bot_logic.config_menu(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
 # Обработчик для callback_data 'delete'
 @router.callback_query(F.data.startswith("delete "))
 async def delete(call: types.CallbackQuery):
     await call.message.delete()
 #--------------------------------------------------------------------------
+
 # Обработчик для callback_data 'create_config'
 @router.callback_query(F.data.startswith("create_config "))
 async def create_config(call: types.CallbackQuery):
@@ -225,7 +244,7 @@ Experience seamless connectivity at your fingertips.
 <b>Features:</b>
 ✨ <i>Create VPN configurations with a single click</i>
 
-<b>Beta 0.6</b>
+<b>Beta 0.7</b>
                 '''
             
             await call.message.answer(text = menu_text, reply_markup=markup)
@@ -257,12 +276,41 @@ Experience seamless connectivity at your fingertips.
             reply_markup=markup
         )
 #--------------------------------------------------------------------------
+
 # Обработчик для callback_data 'learn more'
 @router.callback_query(F.data.startswith("learn_more "))
 async def learn_more(call: types.CallbackQuery):
     text, markup = await bot_logic.learn_more(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
 
+# Обработчик для callback_data 'learn more'
+@router.callback_query(F.data.startswith("en_language "))
+async def en_language(call: types.CallbackQuery):
+    lang = "en"
+    text, markup = await bot_logic.set_language(call.message, lang)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+# Обработчик для callback_data 'learn more'
+@router.callback_query(F.data.startswith("ru_language "))
+async def ru_language(call: types.CallbackQuery):
+    lang = "ru"
+    
+    # Логируем перед вызовом функции
+    logging.info(f"User {call.from_user.id} selected language: {lang}")
+    
+    # Пробуем вызвать функцию и логируем результат
+    try:
+        text, markup = await bot_logic.set_language(call.message, lang)
+        logging.info("Language set successfully, preparing to edit message.")
+    except Exception as e:
+        logging.error(f"Error while setting language: {e}")
+        await call.message.answer("Произошла ошибка при смене языка.")
+        return
+    
+    # Редактируем текст сообщения после успешного изменения
+    await call.message.edit_text(text=text, reply_markup=markup)
 
 #--------------------------------------------------------------------------
 # Обработчик для callback_data 'account_menu'
@@ -271,9 +319,9 @@ async def account_menu(call: types.CallbackQuery):
     text, markup = await bot_logic.account_menu(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("top_up_ballance "))
-async def top_up_ballance(call: types.CallbackQuery):
-    text, markup = await bot_logic.top_up_ballance(call.message.chat.id)
+@router.callback_query(F.data.startswith("top_up_balance "))
+async def top_up_balance(call: types.CallbackQuery):
+    text, markup = await bot_logic.top_up_balance(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 @router.callback_query(F.data.startswith("pay_subscription "))

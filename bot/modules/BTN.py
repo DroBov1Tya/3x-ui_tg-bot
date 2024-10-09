@@ -53,6 +53,16 @@ def admin_add_user(admin, target):
 
 
 #|=============================[Menu]=============================|
+
+def user_agreement(tgid):
+    btn1 = InlineKeyboardButton(text='✅', callback_data=f'agree {tgid}')
+    btn2 = InlineKeyboardButton(text='❌', callback_data=f'decline {tgid}')
+    buttons = [
+        [btn1, btn2]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons) 
+#--------------------------------------------------------------------------
+
 # [🏴‍☠️ Create config]
 # [📋 Learn more]
 # [👤 Account]
@@ -66,6 +76,21 @@ def menu(tgid):
         [btn3]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+# [🏴‍☠️ Создать конфиг]
+# [📋 Узнать больше]
+# [👤 Аккаунт]
+def menu_ru(tgid):
+    btn1 = InlineKeyboardButton(text='🏴‍☠️ Создать конфиг', callback_data=f'config_menu {tgid}')
+    btn2 = InlineKeyboardButton(text='📋 Узнать больше', callback_data=f'learn_more {tgid}')
+    btn3 = InlineKeyboardButton(text='👤 Аккаунт', callback_data=f'account_menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2], 
+        [btn3]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 #--------------------------------------------------------------------------
 
 # [💰 Top up balance]
@@ -84,9 +109,26 @@ def account_menu(tgid):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
 
+# [💰 Пополнить баланс]
+# [💳 Оплатить подписку]
+# [⚙️ Настройки]
+# [🔙 Меню]
+def account_menu_ru(tgid):
+    btn1 = InlineKeyboardButton(text='💰 Пополнить баланс', callback_data=f'top_up_balance {tgid}')
+    btn2 = InlineKeyboardButton(text='💳 Оплатить подписку', callback_data=f'pay_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text='⚙️ Настройки', callback_data=f'account_settings {tgid}')
+    btn4 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1, btn2],
+        [btn3],
+        [btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
 # [₿ Pay with crypto]
 # [👤 Back] [🔙 Menu]
-def top_up_ballance(tgid):
+def top_up_balance(tgid):
     btn1 = InlineKeyboardButton(text='₿ Pay with crypto', callback_data=f'pay_with_crypto {tgid}')
     btn2 = InlineKeyboardButton(text='👤 Back', callback_data=f'account_menu {tgid}')
     btn3 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
@@ -95,6 +137,20 @@ def top_up_ballance(tgid):
         [btn2, btn3]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [₿ Оплатить криптовалютой]
+# [👤 Назад] [🔙 Меню]
+def top_up_balance_ru(tgid):
+    btn1 = InlineKeyboardButton(text='₿ Оплатить криптовалютой', callback_data=f'pay_with_crypto {tgid}')
+    btn2 = InlineKeyboardButton(text='👤 Назад', callback_data=f'account_menu {tgid}')
+    btn3 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2, btn3]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 #--------------------------------------------------------------------------
 
 # [⏳ 1 Month Subscription]
@@ -114,6 +170,26 @@ def pay_subscription(tgid):
         [btn4, btn5]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [⏳ Подписка на 1 месяц]
+# [🕰️ Подписка на 6 месяцев]
+# [🌍 Подписка на 1 год]
+# [👤 Назад] [🔙 Меню]
+def pay_subscription_ru(tgid):
+    btn1 = InlineKeyboardButton(text='⏳ Подписка на 1 месяц', callback_data=f'one_month_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text='🕰️ Подписка на 6 месяцев', callback_data=f'six_months_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text='🌍 Подписка на 1 год', callback_data=f'year_subscription {tgid}')
+    btn4 = InlineKeyboardButton(text='👤 Назад', callback_data=f'account_menu {tgid}')
+    btn5 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3],
+        [btn4, btn5]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
 
 def help(tgid):
     telegraph_links = {
@@ -131,12 +207,52 @@ def help(tgid):
         [btn4]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+def help_ru(tgid):
+    telegraph_links = {
+        'android': 'https://telegra.ph/Rukovodstvo-po-nastrojke-VPN-dlya-Android-10-09',
+        'ios': 'https://telegra.ph/VPN-Configuration-Guide-10-09',
+        'pc': 'https://telegra.ph/Rukovodstvo-po-nastrojke-VPN-dlya-PK-10-09'
+    }
+
+    btn1 = InlineKeyboardButton(text='🤖 Android', url=telegraph_links['android'])
+    btn2 = InlineKeyboardButton(text='🍏 iOS', url=telegraph_links['ios'])
+    btn3 = InlineKeyboardButton(text='💻 ПК', url=telegraph_links['pc'])
+    btn4 = InlineKeyboardButton(text='❌ Удалить', callback_data=f'delete {tgid}')
+    buttons = [
+        [btn1, btn2, btn3],
+        [btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
 #|=============================[Utilities]=============================|
 #[❌ Delete]
 def delete_message(tgid):
     btn1 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
         [btn1],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+#[❌ Удалить]
+def delete_message_ru(tgid):
+    btn1 = InlineKeyboardButton(text='❌ Удалить', callback_data=f'delete {tgid}')
+    buttons = [
+        [btn1],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+#--------------------------------------------------------------------------
+
+#[🇬🇧 English] [🇷🇺 Русский]
+def choose_language(tgid):
+    btn1 = InlineKeyboardButton(text='🇬🇧 English', callback_data=f'en_language {tgid}')
+    btn2 = InlineKeyboardButton(text='🇷🇺 Русский', callback_data=f'ru_language {tgid}')
+    buttons = [
+        [btn1], [btn2]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
@@ -148,6 +264,17 @@ def back(tgid):
         [btn1],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [🔙 Меню]
+def back_ru(tgid):
+    btn1 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+#--------------------------------------------------------------------------
 #|===========================[End Utilities]===========================|
 
 #|=============================[Config generation]=============================|
@@ -217,3 +344,68 @@ def config_menu(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
 
+#[Dynamic]
+#[🎰 Случайный]
+#[🔙 Меню]
+def config_menu_ru(tgid: int, servers: Dict[str, Any]) -> InlineKeyboardMarkup:
+    """
+    Создает динамически расширяющееся меню конфигурации с кнопками серверов и опцией случайного выбора хоста.
+
+    Args:
+        tgid (int): Идентификатор пользователя Telegram.
+        servers (Dict[str, Any]): Словарь с информацией о серверах.
+
+    Returns:
+        InlineKeyboardMarkup: Разметка для меню с кнопками.
+    """
+    buttons: List[List[InlineKeyboardButton]] = []
+    row: List[InlineKeyboardButton] = []
+
+    # Кнопка для возврата в главное меню
+    menu_button = InlineKeyboardButton(
+        text="🔙 Меню", 
+        callback_data=f'menu {tgid}'
+    )
+    
+    if servers is not None:
+        for index, server in enumerate(servers.get('result', [])):
+            hostname = server['hostname']
+            country = CC.get(server["country"], "Неизвестно")
+
+            button = InlineKeyboardButton(
+                text=country,
+                callback_data=f'create_config {tgid} {hostname}'
+            )
+            row.append(button)
+
+            # Формируем ряд из трех кнопок
+            if (index + 1) % 3 == 0:
+                buttons.append(row)
+                row = []
+
+        # Добавляем оставшиеся кнопки в последний ряд, если есть
+        if row:
+            buttons.append(row)
+
+        # Логика случайного выбора хоста
+        if servers.get('result'):
+            random_server = choice(servers['result'])
+            random_hostname = random_server['hostname']
+        else:
+            random_hostname = 'no_servers'
+
+        # Кнопка для случайного выбора сервера
+        random_button = InlineKeyboardButton(
+            text="🎰 Случайный", 
+            callback_data=f'create_config {tgid} {random_hostname}'
+        )
+
+        # Добавляем кнопки в меню
+        buttons.append([random_button])
+        buttons.append([menu_button])
+
+    else:
+        buttons.append([menu_button])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------

@@ -97,7 +97,30 @@ async def user_info(tgid: str) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 3. /user/checkvoucher
+# 3. /user/agree/{tgid}
+async def agree(tgid: str) -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
+        UPDATE users
+        SET is_banned = False
+        WHERE tgid = $1;
+    '''
+    
+    try:
+        r = await pg.fetch(query, tgid)
+
+        if r is None:
+            return {"Success": False, "Reason": "User not found"}
+        else:
+            return {"Success": True, "user": r }
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 4. /user/checkvoucher
 async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Функция для проверки ваучера в базе данных. 
@@ -140,7 +163,7 @@ async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 4. /user/activatevoucher
+# 5. /user/activatevoucher
 async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
     '''
     Функция активации ваучера и обновления срока подписки пользователя.
@@ -219,7 +242,7 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
         return {"Success": False, "Reason": "Internal server error."}
 #--------------------------------------------------------------------------
 
-# 5. /user/getbalance/{tgid}
+# 6. /user/getbalance/{tgid}
 async def getbalance(tgid: int) -> Dict[str, Any]:
     """
     """
@@ -246,7 +269,7 @@ async def getbalance(tgid: int) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 6. /user/getsubscription/{tgid}
+# 7. /user/getsubscription/{tgid}
 async def getsubscription(tgid: int) -> Dict[str, Any]:
     """
     Получение времени подписки по идентификатору Telegram пользователя.
@@ -268,6 +291,67 @@ async def getsubscription(tgid: int) -> Dict[str, Any]:
         else:
             subscription = r['sub']
             return {"Success": True, "subscription": subscription}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 8. /user/setlanguage
+async def setlanguage(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Изменение языка бота для пользователя на Русский
+    """
+
+    lang = data.get("lang")
+    tgid = data.get("tgid")
+
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    if not lang:
+        logging.error("Language is missing.")
+        return {"Success": False, "Reason": "Language is missing."}
+    
+    query = '''
+        UPDATE users
+        SET lang = $1
+        WHERE tgid = $2;
+    '''
+
+    values = (lang, tgid)
+    try:
+        r = await pg.execute(query, values)  
+        if not r:
+            return {"Success": False, "Reason": "Can't update language"}
+        else:
+            return {"Success": True}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 9. /user/checklanguage/{tgid}
+async def checklanguage(tgid: int) -> Dict[str, Any]:
+    """
+    """
+
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    
+    query = '''
+        SELECT lang
+        FROM users
+        WHERE tgid = $1;
+    '''
+
+    try:
+        r = await pg.fetch(query, tgid)  
+        if not r:
+            return {"Success": False, "Reason": "Can't find language"}
+        else:
+            lang = r['lang']
+            return {"Success": True, "lang": lang}
         
     except Exception as ex:
         return await handle_exception(ex)

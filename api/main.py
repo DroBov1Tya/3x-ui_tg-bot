@@ -24,33 +24,53 @@ async def user_info(tgid: int):
     return r
 #--------------------------------------------------------------------------
 
-# 3. /user/checkvoucher
+# 3. /user/agree/{tgid}
+@app.get("/user/agree/{tgid}", tags=[Tags.user], summary="User agree")
+async def user_info(tgid: int):
+    r = await api.agree(tgid)
+    return r
+#--------------------------------------------------------------------------
+
+# 4. /user/checkvoucher
 @app.post("/user/checkvoucher", tags=[Tags.user], summary="Voucher check")
 async def checkvoucher(data = Body(example=ex.user_create)):
     r = await api.checkvoucher(data)
     return r
 #--------------------------------------------------------------------------
 
-# 4. /user/activatevoucher
+# 5. /user/activatevoucher
 @app.post("/user/activatevoucher", tags=[Tags.user], summary="Voucher activate")
 async def activate_voucher(data = Body(example=ex.user_create)):
     r = await api.activate_voucher(data)
     return r
 #--------------------------------------------------------------------------
 
-# 5. /user/getbalance/{tgid}
-@app.get("/user/getbalance/{tgid}", tags=[Tags.user], summary="Voucher activate")
+# 6. /user/getbalance/{tgid}
+@app.get("/user/getbalance/{tgid}", tags=[Tags.user], summary="Get balance")
 async def getbalance(tgid: int):
     r = await api.getbalance(tgid)
     return r
 #--------------------------------------------------------------------------
 
-# 6. /user/getsubscription/{tgid}
-@app.get("/user/getsubscription/{tgid}", tags=[Tags.user], summary="Voucher activate")
+# 7. /user/getsubscription/{tgid}
+@app.get("/user/getsubscription/{tgid}", tags=[Tags.user], summary="Get subscription")
 async def getsubscription(tgid: int):
     r = await api.getsubscription(tgid)
     return r
 #--------------------------------------------------------------------------
+
+# 8. /user/setlanguage
+@app.post("/user/setlanguage", tags=[Tags.user], summary="Set language")
+async def setlanguage(json = Body(example=ex.set_language)):
+    r = await api.setlanguage(json)
+    return r
+#--------------------------------------------------------------------------
+
+# 8. /user/checklanguage/{tgid}
+@app.get("/user/checklanguage/{tgid}", tags=[Tags.user], summary="Check language")
+async def checklanguage(tgid: int):
+    r = await api.checklanguage(tgid)
+    return r
 #|=============================[End User routes]=============================|
 
 #|=============================[Admin routes]=============================|
