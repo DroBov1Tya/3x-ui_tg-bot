@@ -12,11 +12,10 @@ if debug == "TRUE":
     bot_token: str = os.getenv("BOT_TOKEN_DEV")
 else:
     bot_token: str = os.getenv("BOT_TOKEN_PROD")
-#|===========================[End TG bot init]===========================|
+
 #|=============================[Api keys]=============================|
 fastapi_key: str = os.getenv("FASTAPI_KEY")
-fastapi_url: str = "http://api:8000/"
-#|===========================[End Api keys]===========================|
+fastapi_url: str = "http://api:8000"
 
 async def http(url: str, method: str = "GET", headers=None, data = None, files = None):
     try:
@@ -35,7 +34,10 @@ async def http(url: str, method: str = "GET", headers=None, data = None, files =
         result = {"Success": False, "Reason": str(e)}
 
     return result
-#|===========================[End Methods]=============================|
+
+onemonth: int = int(os.getenv("ONEMONTH"))
+sixmonth: int = int(os.getenv("SIXMONTH"))
+year: int = int(os.getenv("YEAR"))
 
 #|===============================[Countries]===============================|
 

@@ -8,7 +8,6 @@ async def get_user_info(tgid) -> dict:
     r = await api.user_info(tgid)
     return r
 
-
 class message_middleware(BaseMiddleware):
     async def __call__(
         self,
@@ -17,13 +16,13 @@ class message_middleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         
-        user_info = await get_user_info(event.chat.id)
         message = event
+        user_info = await get_user_info(message.chat.id)
 
         if not user_info['Success']:
+            await api.create_user(message)
             text, markup = await bot_logic.start_cmd(message)
             await message.bot.send_message(message.chat.id, text, reply_markup=markup)
-            await api.create_user(message)
             return
 
         if user_info['user']['is_banned']:
@@ -34,22 +33,3 @@ class message_middleware(BaseMiddleware):
         else:
             await handler(message, data)
             return
-
-
-            # # if message here:
-            # if event.text: 
-            #     message = event
-            #     await handler(message, data)
-            #     return
-            
-            # # if callback button here:
-            # elif event:
-            #     callbackquery = event
-            #     await handler(callbackquery, data)
-            #     return
-                
-            # # if inline mode triggere here:
-            # elif event.inline_query:
-            #     inlinequery = event
-            #     await handler(inlinequery, data)
-            #     return

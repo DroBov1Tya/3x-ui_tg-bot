@@ -35,7 +35,7 @@ For the best results, please select your preferred language for the bot. 🏆
 '''
 
 menu_en = '''
-<b>Welcome to Spoof VeilVoyager 🌌</b>
+<b>Welcome to VeilVoyager VPN 🌌</b>
 _______________________
 
 🚀 **Streamline your VPN setup effortlessly!**  
@@ -44,11 +44,11 @@ Experience seamless connectivity at your fingertips.
 <b>Features:</b>
 ✨ <i>Create VPN configurations with a single click</i>
 
-<b>Beta 0.7</b>
+<b>Beta 0.8</b>
     '''
 
 menu_ru = '''
-<b>Добро пожаловать в Spoof VeilVoyager 🌌</b>
+<b>Добро пожаловать в VeilVoyager VPN 🌌</b>
 _______________________
 
 🚀 **Настройте VPN без усилий!**  
@@ -57,7 +57,7 @@ _______________________
 <b>Особенности:</b>
 ✨ <i>Создавайте VPN-конфигурации в один клик</i>
 
-<b>Бета 0.6</b>
+<b>Бета 0.8</b>
     '''
 
 help_cmd_en = '''
@@ -142,51 +142,59 @@ learn_more_ru = '''
 Просто, надежно и безопасно.
 '''
 
-config_menu_en = '''
+async def config_menu_en(config_limit):
+    text = f'''
 <b>🏴‍☠️ Choose Your VPN Country 🏴‍☠️</b>
 
-🌍 **Select a Country:**  
+🌍 <b>Select a Country:</b>  
 Choose a server location to enhance your browsing experience. Pick from various countries to access geo-restricted content and enjoy seamless connectivity!
 
-🔒 **Stay Secure:**  
+🔒 <b>Stay Secure:</b>  
 Connect through your chosen country for privacy and security while surfing the internet. Make your selection below! ✨
-'''
 
-config_menu_ru = '''
+💼 <b>Configuration Limit:</b>  
+You can create {config_limit} more configurations.
+
+⚠️ <b>Server Updates:</b>  
+If a server you previously used is no longer available, any configurations created on that server will be returned to your configuration limit, allowing you to create new configurations on available servers.
+'''
+    return text
+
+async def config_menu_ru(config_limit):
+    text = f'''
 <b>🏴‍☠️ Выберите страну для VPN 🏴‍☠️</b>
 
-🌍 **Выбор страны:**  
+🌍 <b>Выбор страны:</b>  
 Выберите местоположение сервера для улучшения вашего интернет-опыта. Выбирайте из различных стран для доступа к гео-ограниченному контенту и наслаждайтесь бесперебойным соединением!
 
-🔒 **Оставайтесь в безопасности:**  
+🔒 <b>Оставайтесь в безопасности:</b>  
 Подключайтесь через выбранную страну для обеспечения конфиденциальности и безопасности в сети. Сделайте свой выбор ниже! ✨
-'''
 
-async def account_menu_en(balance, subscription_status): 
+💼 <b>Лимит конфигураций:</b>  
+Вы можете создать еще {config_limit} конфигураций.
+
+⚠️ <b>Обновление серверов:</b>  
+Если сервер, на котором были созданы конфигурации, перестает быть доступен, созданные на нем конфигурации возвращаются в ваш лимит, что позволит вам создать новые конфигурации на доступных серверах.
+'''
+    return text
+
+async def account_menu_en(subscription_status): 
     text = f'''
 <b>👤 Your Account</b>
 Here you can manage your account settings and access all available features:
 
-💰 <i>Your current balance:</i> <b>{balance} units 💵</b>
-
 📅 <i>Renew subscription</i> to continue enjoying our premium features.
-
-⚙️ <i>Settings</i> to customize your experience to your preferences.
 
 <b>📊 Subscription Status:</b> \n{subscription_status}
 '''
     return text
 
-async def account_menu_ru(balance, subscription_status):
+async def account_menu_ru(subscription_status):
     text = f'''
 <b>👤 Ваш аккаунт</b>
 Здесь вы можете управлять настройками вашего аккаунта и получать доступ ко всем доступным функциям:
 
-💰 <i>Ваш текущий баланс:</i> <b>{balance} единиц 💵</b>
-
 📅 <i>Продлите подписку</i>, чтобы продолжать пользоваться нашими премиум-функциями.
-
-⚙️ <i>Настройки</i>, чтобы настроить ваш опыт в соответствии с вашими предпочтениями.
 
 <b>📊 Статус подписки:</b> \n{subscription_status}
 
@@ -209,25 +217,196 @@ top_up_balance_ru = '''
 '''
 
 pay_subscription_en = '''
-<b>📅 Subscription Options</b>
-Choose the subscription plan that best suits your needs and enjoy uninterrupted access to our services:
+📅 <b>Subscription Options</b>
+Choose the payment method that suits you best and enjoy uninterrupted access to our VPN services.
 
-- <i>1 Month Subscription</i>: Perfect for those who want to try out our features.
+We use <b>CryptoBot Telegram</b> for fast and convenient cryptocurrency payments. Please select one of the available cryptocurrencies for payment:
 
-- <i>6 Months Subscription</i>: A great choice for long-term users looking for value.
+- 💵 <b>USDT (TRC-20):</b> Ideal for stable and secure payments.
 
-- <i>1 Year Subscription</i>: Best for frequent users who want to maximize savings.
+- ₿ <b>Bitcoin:</b> A reliable choice for those who prefer BTC.
 
+- Ł <b>Litecoin:</b> A fast and lightweight alternative for payments.
+
+- 🌀 <b>TON:</b> The optimal choice for Telegram users.
+
+Select your preferred cryptocurrency below:
 '''
 
 pay_subscription_ru = '''
-<b>📅 Опции подписки</b>
-Выберите план подписки, который лучше всего соответствует вашим потребностям, и наслаждайтесь непрерывным доступом к нашим услугам:
+📅 <b>Опции подписки</b>
+Выберите удобный для вас способ оплаты и наслаждайтесь доступом к нашим VPN услугам.
 
-- <i>Подписка на 1 месяц</i>: Идеально для тех, кто хочет опробовать наши функции.
+Мы используем <b>CryptoBot Telegram</b> для быстрых и удобных платежей в криптовалюте. Выберите одну из доступных криптовалют для оплаты:
 
-- <i>Подписка на 6 месяцев</i>: Отличный выбор для долгосрочных пользователей, ищущих выгоду.
+- <b>💵 USDT (TRC-20):</b> Подходит для стабильных и безопасных платежей.
 
-- <i>Подписка на 1 год</i>: Лучше всего подходит для частых пользователей, которые хотят максимизировать экономию.
+- <b>₿ Bitcoin:</b> Надежный выбор для тех, кто предпочитает BTC.
+
+- <b>Ł Litecoin:</b> Легкая и быстрая альтернатива для оплаты.
+
+- <b>🌀 TON:</b> Оптимальный выбор для пользователей Telegram.
+
+Выберите криптовалюту для оплаты ниже:
 '''
 
+pay_with_crypto_en = '''
+💼 <b>Select a payment method for your VPN subscription:</b>
+
+You can pay for your subscription using the following cryptocurrencies:
+
+1. 💵 USDT (TRC-20)
+2. ₿ Bitcoin
+3. Ł Litecoin
+4. 🌀 TON
+
+<b>Choose your preferred payment method below:</b>
+'''
+
+pay_with_crypto_ru = '''
+💼 <b>Выберите способ оплаты для подписки на VPN:</b>
+
+Вы можете оплатить подписку с помощью следующих криптовалют:
+
+1. 💵 USDT (TRC-20)
+2. ₿ Bitcoin
+3. Ł Litecoin
+4. 🌀 TON
+
+<b>Выберите предпочтительный способ оплаты ниже:</b>
+'''
+
+async def usdt_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Choose a payment method for your VPN subscription:</b>
+
+🔹 <b>1 Month Subscription:</b> {one_month_crypto}$ 💵 USDT TRC-20
+🔹 <b>6 Months Subscription:</b> {six_month_crypto}$ 💵 USDT TRC-20 (10% discount)  
+🔹 <b>12 Months Subscription:</b> {twelve_month_crypto}$ 💵 USDT TRC-20 (18% discount)
+
+💳 <b>Available payment methods:</b>
+
+📊 <i>The price is fixed</i>
+'''
+    return text
+
+async def usdt_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Выберите способ оплаты для вашей подписки на VPN:</b>
+
+🔹 <b>1 месяц подписки:</b> {one_month_crypto}$ 💵 USDT TRC-20
+🔹 <b>6 месяцев подписки:</b> {six_month_crypto}$ 💵 USDT TRC-20 (скидка 10%)  
+🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto}$ 💵 USDT TRC-20 (скидка 18%)
+
+💳 <b>Доступные способы оплаты:</b>
+
+📊 <i>Цена фиксированная</i>
+'''
+    return text
+
+async def bct_sub_en(six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Select a payment method for your VPN subscription:</b>
+
+🔹 <b>6 Months Subscription:</b> {six_month_crypto} ₿ BTC
+🔹 <b>12 Months Subscription:</b> {twelve_month_crypto} ₿ BTC (10% discount)
+
+💳 <b>Available payment method:</b>
+
+🔹 ₿ <b>Bitcoin</b>
+
+📊 <i>Prices are calculated based on the current cryptocurrency exchange rate</i>
+'''
+    return text
+
+async def bct_sub_ru(six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Выберите способ оплаты для вашей подписки на VPN:</b>
+
+🔹 <b>6 месяцев подписки:</b> {six_month_crypto} ₿ BTC
+🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto} ₿ BTC (скидка 10%)
+
+💳 <b>Доступный способ оплаты:</b>
+
+🔹 ₿ <b>Bitcoin</b>
+
+📊 <i>Цена указана с учетом актуального курса криптовалюты</i>
+'''
+    return text
+
+async def ltc_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Select a payment method for your VPN subscription:</b>
+
+🔹 <b>1 Month Subscription:</b> {one_month_crypto} Ł LTC
+🔹 <b>6 Months Subscription:</b> {six_month_crypto} Ł LTC (10% discount)  
+🔹 <b>12 Months Subscription:</b> {twelve_month_crypto} Ł LTC (18% discount)
+
+💳 <b>Available payment method:</b>
+
+🔹 Ł <b>Litecoin</b>
+
+📊 <i>Prices are calculated based on the current cryptocurrency exchange rate</i>
+'''
+    return text
+
+async def ltc_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Выберите способ оплаты для вашей подписки на VPN:</b>
+
+🔹 <b>1 месяц подписки:</b> {one_month_crypto} Ł LTC
+🔹 <b>6 месяцев подписки:</b> {six_month_crypto} Ł LTC (скидка 10%)  
+🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto} Ł LTC (скидка 18%)
+
+💳 <b>Доступный способ оплаты:</b>
+
+🔹 Ł <b>Litecoin</b>
+
+📊 <i>Цена указана с учетом актуального курса криптовалюты</i>
+'''
+    return text
+
+async def ton_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Select a payment method for your VPN subscription:</b>
+
+🔹 <b>1 Month Subscription:</b> {one_month_crypto} 🌀 TON
+🔹 <b>6 Months Subscription:</b> {six_month_crypto} 🌀 TON (10% discount)  
+🔹 <b>12 Months Subscription:</b> {twelve_month_crypto} 🌀 TON (18% discount)
+
+💳 <b>Available payment method:</b>
+
+🔹 🌀 <b>TON</b>
+
+📊 <i>Prices are calculated based on the current cryptocurrency exchange rate</i>
+'''
+    return text
+
+async def ton_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto): 
+    text = f'''
+💼 <b>Выберите способ оплаты для вашей подписки на VPN:</b>
+
+🔹 <b>1 месяц подписки:</b> {one_month_crypto} 🌀 TON
+🔹 <b>6 месяцев подписки:</b> {six_month_crypto} 🌀 TON (скидка 10%)  
+🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto} 🌀 TON (скидка 18%)
+
+💳 <b>Доступный способ оплаты:</b>
+
+🔹 🌀 <b>TON</b>
+
+📊 <i>Цена указана с учетом актуального курса криптовалюты</i>
+'''
+    return text
+
+admin_createvoucher = '''
+<b>Создание ваучеров</b>
+<i>Здесь вы можете создать ваучер на подписку для пользователей на указанный срок. Выберите один из вариантов ниже, чтобы сгенерировать соответствующий ваучер:</i>
+
+- <b>⏳ 1 Month</b>: Создаёт ваучер на 1 месяц подписки.
+
+- <b>🕰️ 6 Months</b>: Создаёт ваучер на 6 месяцев подписки.
+
+- <b>🌍 1 Year</b>: Создаёт ваучер на 1 год подписки.
+
+Нажмите соответствующую кнопку для создания ваучера.
+'''

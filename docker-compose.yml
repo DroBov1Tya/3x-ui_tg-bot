@@ -13,6 +13,9 @@ services:
             REDIS_DSN: ${REDIS_DSN}
             FASTAPI_KEY: ${FASTAPI_KEY}
             ADMINS: ${ADMINS}
+            ONEMONTH : ${ONEMONTH}
+            SIXMONTH: ${SIXMONTH}
+            YEAR: ${YEAR}
         restart: always
         depends_on:
             - redis    

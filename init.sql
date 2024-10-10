@@ -6,11 +6,11 @@ CREATE TABLE users (
     nickname        TEXT,
     first_name      TEXT,
     last_name       TEXT,
-    balance         DECIMAL(10, 2) DEFAULT 0,
+    configlimit     SMALLINT NOT NULL DEFAULT 30,
     user_level      SMALLINT DEFAULT 0, /* 0 - demo, 1 - basic, 2 - advanced, 3 - premium */
     is_banned       boolean NOT NULL DEFAULT true,
     is_admin        boolean NOT NULL DEFAULT false,
-    sub             BIGINT, /* Unix time для окончания подписки */
+    sub             BIGINT DEFAULT 0, /* Unix time для окончания подписки */
     lang            TEXT NOT NULL DEFAULT 'en',
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -56,7 +56,7 @@ CREATE TABLE vouchers (
     code            VARCHAR(50) NOT NULL UNIQUE, -- Уникальный код ваучера
     discount_type   VARCHAR(20) NOT NULL, -- Например, 'subscription' для подписки
     duration        BIGINT NOT NULL, -- Количество месяцев для подписки
-    is_used         BOOLEAN NOT NULL DEFAULT false, -- Флаг, указывающий, использован ли ваучер
+    is_used         BOOLEAN NOT NULL, -- Флаг, указывающий, использован ли ваучер
     created_at      BIGINT,
     expires_at      BIGINT -- Дата окончания действия ваучера
 );

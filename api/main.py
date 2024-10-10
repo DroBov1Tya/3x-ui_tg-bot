@@ -45,21 +45,14 @@ async def activate_voucher(data = Body(example=ex.user_create)):
     return r
 #--------------------------------------------------------------------------
 
-# 6. /user/getbalance/{tgid}
-@app.get("/user/getbalance/{tgid}", tags=[Tags.user], summary="Get balance")
-async def getbalance(tgid: int):
-    r = await api.getbalance(tgid)
-    return r
-#--------------------------------------------------------------------------
-
-# 7. /user/getsubscription/{tgid}
+# 6. /user/getsubscription/{tgid}
 @app.get("/user/getsubscription/{tgid}", tags=[Tags.user], summary="Get subscription")
 async def getsubscription(tgid: int):
     r = await api.getsubscription(tgid)
     return r
 #--------------------------------------------------------------------------
 
-# 8. /user/setlanguage
+# 7. /user/setlanguage
 @app.post("/user/setlanguage", tags=[Tags.user], summary="Set language")
 async def setlanguage(json = Body(example=ex.set_language)):
     r = await api.setlanguage(json)
@@ -71,6 +64,14 @@ async def setlanguage(json = Body(example=ex.set_language)):
 async def checklanguage(tgid: int):
     r = await api.checklanguage(tgid)
     return r
+#--------------------------------------------------------------------------
+
+# 9. /user/configlimit/{tgid}
+@app.get("/user/configlimit/{tgid}", tags=[Tags.user], summary="Check config limit")
+async def configlimit(tgid: int):
+    r = await api.configlimit(tgid)
+    return r
+#--------------------------------------------------------------------------
 #|=============================[End User routes]=============================|
 
 #|=============================[Admin routes]=============================|

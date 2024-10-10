@@ -10,6 +10,7 @@ from aiogram.fsm.state import StatesGroup, State
 from middlewares.message_middleware import message_middleware
 from middlewares.callback_middleware import callback_middleware
 from middlewares.inline_middleware import inline_middleware
+from modules import lang_text
 
 router = Router()
 
@@ -43,9 +44,15 @@ async def start_voucher_process(message: Message, state: FSMContext):
     Хэндлер для команды /voucher. Отправляет сообщение с просьбой ввести код ваучера
     и переводит пользователя в состояние ожидания кода ваучера.
     """
-    await message.answer("🎫 Enter voucher code:")
-    # Устанавливаем состояние ожидания ваучера
-    await state.set_state(VoucherStates.waiting_for_voucher)
+    language = await api.check_language(message.chat.id)
+    if language.get("lang") == "en":
+        await message.answer("🎫 Enter voucher code:")
+        # Устанавливаем состояние ожидания ваучера
+        await state.set_state(VoucherStates.waiting_for_voucher)
+    elif language.get("lang") == "ru":
+        await message.answer("🎫 Введите код ваучера:")
+        # Устанавливаем состояние ожидания ваучера
+        await state.set_state(VoucherStates.waiting_for_voucher)
 @router.message(StateFilter(VoucherStates.waiting_for_voucher))
 async def process_voucher_input(message: Message, state: FSMContext):
     """
@@ -54,18 +61,26 @@ async def process_voucher_input(message: Message, state: FSMContext):
     """
     # Извлекаем введённый код ваучера
     voucher_code = message.text.strip()
-
+    lang = (await api.check_language(message.chat.id)).get("lang")
     # Отправляем запрос в API для проверки ваучера, передавая tgid и код ваучера
     response = await api.check_voucher(message.chat.id, voucher_code)
-
-    # Проверяем ответ API
-    if response["Success"]:
-        await message.answer("The voucher has been activated! You have received a subscription.")
-        # Логика активации подписки в API
-        await api.process_voucher(message.chat.id, voucher_code)  # Активируем подписку через API
-    else:
-        await message.answer(f"Error: {response['Reason']}")
-
+    if lang == "en":
+        # Проверяем ответ API
+        if response["Success"]:
+            await message.answer("The voucher has been activated! You have received a subscription.")
+            # Логика активации подписки в API
+            await api.process_voucher(message.chat.id, voucher_code)  # Активируем подписку через API
+        else:
+            await message.answer(f"Error: {response['Reason']}")
+    
+    elif lang == "ru":
+        # Проверяем ответ API
+        if response["Success"]:
+            await message.answer("Ваучер активирован! Вы получили подписку.")
+            # Логика активации подписки в API
+            await api.process_voucher(message.chat.id, voucher_code, lang)  # Активируем подписку через API
+        else:
+            await message.answer(f"Ошибка: {response['Reason']}")
     # После обработки очищаем состояние
     await state.clear()
 #--------------------------------------------------------------------------
@@ -225,56 +240,89 @@ async def create_config(call: types.CallbackQuery):
     try:
         _, tgid, hostname = call.data.split(" ")
         # Получаем текст, разметку и файл QR-кода от логики бота
-        text, markup, markup_delete, qr_file = await bot_logic.create_config(call.message, hostname)
+        text, markup, markup_delete, qr_file, lang = await bot_logic.create_config(call.message, hostname)
+        print(lang)
+        if lang == "en":
+            if qr_file:
+                # Попытка отправить файл как фото
+                await call.message.answer_photo(
+                    photo=types.FSInputFile(qr_file), 
+                    caption=f"<code>{text}</code>", reply_markup=markup_delete
+                )
 
-        if qr_file:
-            # Попытка отправить файл как фото
-            await call.message.answer_photo(
-                photo=types.FSInputFile(qr_file), 
-                caption=f"<code>{text}</code>", reply_markup=markup_delete
-            )
-
-            menu_text = f'''
-                <b>Welcome to Spoof VeilVoyager 🌌</b>
-_______________________
-
-🚀 **Streamline your VPN setup effortlessly!**  
-Experience seamless connectivity at your fingertips.
-
-<b>Features:</b>
-✨ <i>Create VPN configurations with a single click</i>
-
-<b>Beta 0.7</b>
-                '''
+                menu_text = lang_text.menu_en
             
-            await call.message.answer(text = menu_text, reply_markup=markup)
+                await call.message.answer(text = menu_text, reply_markup=markup)
 
-        else:
-            # If no QR file, send only the text
+            else:
+                # If no QR file, send only the text
+                await call.message.answer(
+                    text=text,
+                    reply_markup=markup
+                )
+
+        elif lang == "ru":
+            if qr_file:
+                # Попытка отправить файл как фото на русском
+                await call.message.answer_photo(
+                    photo=types.FSInputFile(qr_file), 
+                    caption=f"<code>{text}</code>", reply_markup=markup_delete
+                )
+
+                menu_text = lang_text.menu_ru
+            
+                await call.message.answer(text=menu_text, reply_markup=markup)
+
+            else:
+                # Если файла QR нет, отправить только текст на русском
+                await call.message.answer(
+                    text=text,
+                    reply_markup=markup
+                )
+
+    except FileNotFoundError:
+        # Обработка случая, когда файл не найден
+        if lang == "en":
             await call.message.answer(
-                text=text,
+                text=f"File not found. Please try again later.\n<code>{text}</code>", 
                 reply_markup=markup
             )
-    except FileNotFoundError:
-        # Handle case where file is not found
-        await call.message.answer(
-            text=f"File not found. Please try again later.\n<code>{text}</code>", 
-            reply_markup=markup
-        )
-    except ValueError as ve:
-        # Handle case where callback data is incorrect
-        logging.error(f"Error in callback data: {ve}")
-        await call.message.answer(
-            text="Invalid data. Please try again.",
-            reply_markup=markup
-        )
+        elif lang == "ru":
+            await call.message.answer(
+                text=f"Файл не найден. Пожалуйста, попробуйте позже.\n<code>{text}</code>", 
+                reply_markup=markup
+            )
+
+    except ValueError as e:
+        if lang == "en":
+            # Обработка некорректных данных callback
+            logging.error(f"Error in callback data: {e}")
+            await call.message.answer(
+                text="Invalid data. Please try again.",
+                reply_markup=markup
+            )
+        elif lang == "ru":
+            logging.error(f"Ошибка в данных callback: {e}")
+            await call.message.answer(
+                text="Некорректные данные. Пожалуйста, попробуйте снова.",
+                reply_markup=markup
+            )
+
     except Exception as e:
-        # General error handling
-        logging.error(f"Unknown error: {e}")
-        await call.message.answer(
-            text="An error occurred while processing your request.",
-            reply_markup=markup
-        )
+        if lang == "en":
+            # Общая обработка ошибок на английском
+            logging.error(f"Unknown error: {e}")
+            await call.message.answer(
+                text="An error occurred while processing your request.",
+                reply_markup=markup
+            )
+        elif lang == "ru":
+            # Общая обработка ошибок на русском
+            logging.error(f"Неизвестная ошибка: {e}")
+            await call.message.answer(
+                text="Произошла ошибка при обработке вашего запроса.",
+                reply_markup=markup
+            )
 #--------------------------------------------------------------------------
 
 # Обработчик для callback_data 'learn more'
@@ -284,19 +332,38 @@ async def learn_more(call: types.CallbackQuery):
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 
-# Обработчик для callback_data 'learn more'
+# Обработчик для callback_data 'en_language '
 @router.callback_query(F.data.startswith("en_language "))
 async def en_language(call: types.CallbackQuery):
     lang = "en"
+
+    # Установка команд для конкретного пользователя
+    commands = [
+        types.BotCommand(command="/start", description="Start interacting with the bot"),
+        types.BotCommand(command="/menu", description="Display the menu"),
+        types.BotCommand(command="/voucher", description="Activate a voucher"),
+        types.BotCommand(command="/language", description="Change bot language"),
+        types.BotCommand(command="/help", description="Get help on using the bot")
+    ]
+    await call.message.bot.set_my_commands(commands)
     text, markup = await bot_logic.set_language(call.message, lang)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
 
-# Обработчик для callback_data 'learn more'
+# Обработчик для callback_data 'ru_language'
 @router.callback_query(F.data.startswith("ru_language "))
 async def ru_language(call: types.CallbackQuery):
     lang = "ru"
-    
+    commands = [
+            types.BotCommand(command="/start", description="Начать взаимодействие с ботом"),
+            types.BotCommand(command="/menu", description="Показать меню"),
+            types.BotCommand(command="/voucher", description="Активировать ваучер"),
+            types.BotCommand(command="/language", description="Изменить язык бота"),
+            types.BotCommand(command="/help", description="Получить помощь по использованию бота")
+        ]
+
+    # Установка команд для пользователя
+    await call.message.bot.set_my_commands(commands)
     # Логируем перед вызовом функции
     logging.info(f"User {call.from_user.id} selected language: {lang}")
     
@@ -324,21 +391,40 @@ async def top_up_balance(call: types.CallbackQuery):
     text, markup = await bot_logic.top_up_balance(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("pay_subscription "))
-async def pay_subscription(call: types.CallbackQuery):
-    text, markup = await bot_logic.pay_subscription(call.message.chat.id)
-    await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("account_settings "))
-async def account_settings(call: types.CallbackQuery):
-    text, markup = await bot_logic.account_settings(call.message.chat.id)
-    await call.message.edit_text(text=text, reply_markup=markup)
-#--------------------------------------------------------------------------
+
 @router.callback_query(F.data.startswith("pay_with_crypto "))
-async def pay_with_crypto(call: types.CallbackQuery):
+async def pay_subscription(call: types.CallbackQuery):
     text, markup = await bot_logic.pay_with_crypto(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
+
+@router.callback_query(F.data.startswith("pay_with_usdt "))
+async def pay_with_usdt(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_with_usdt(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+@router.callback_query(F.data.startswith("pay_with_btc "))
+async def pay_with_btc(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_with_btc(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+@router.callback_query(F.data.startswith("pay_with_ltc "))
+async def pay_with_ltc(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_with_ltc(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+@router.callback_query(F.data.startswith("pay_with_ton "))
+async def pay_with_ton(call: types.CallbackQuery):
+    text, markup = await bot_logic.pay_with_ton(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+
+
+
 @router.callback_query(F.data.startswith("one_month_subscription "))
 async def one_month_subscription(call: types.CallbackQuery):
     text, markup = await bot_logic.one_month_subscription(call.message.chat.id)

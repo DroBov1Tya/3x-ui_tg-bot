@@ -3,13 +3,13 @@ import logging
 import time
 from modules import lang_text
 from modules import BTN, api
-from config import logger
+from config import logger, onemonth, sixmonth, year
 #|=============================[Menu]=============================|
 #Событие команды start
 async def start_cmd(message):
         userinfo = await api.user_info(message.chat.id)
-
-        if userinfo["Success"]:
+        is_banned = userinfo["user"]["is_banned"]
+        if userinfo["Success"] and is_banned == False:
             text, markup = lang_text.language, BTN.choose_language(message.chat.id)
             return text, markup
         
@@ -39,111 +39,121 @@ For the best experience, you can choose the bot's language. 🌐
 # Собитие кнопки и команды Menu
 async def menu_cmd(message):
     tgid = message.chat.id
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
         text, markup = lang_text.menu_en, BTN.menu(tgid)
         return text, markup
     
-    elif language.get("lang") == "ru":
+    elif lang == "ru":
         text, markup = lang_text.menu_ru, BTN.menu_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
 async def help_cmd(tgid):
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
         text, markup = lang_text.help_cmd_en, BTN.help(tgid)
         return text, markup
-    elif language.get("lang") == "ru":
+    elif lang == "ru":
         text, markup = lang_text.help_cmd_ru, BTN.help_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
 async def learn_more(tgid: int):
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
         text, markup = lang_text.learn_more_en, BTN.back(tgid)
         return text, markup
-    elif language.get("lang") == "ru":
+    elif lang == "ru":
         text, markup = lang_text.learn_more_ru, BTN.back_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
 async def create_config(message, hostname):
     tgid = message.chat.id
-    language = await api.check_language(tgid)
+    config_limit = await api.check_config_limit(tgid)
+    lang = (await api.check_language(message.chat.id)).get("lang")
     try:
-        if language.get("lang") == "en":
-            data, qr_file = await api.create_config(message, hostname)
-            if not data:
-                text = "Your subscription has expired, would you like to renew it?"
+        if config_limit > 0:
+            if lang == "en":
+                data, qr_file = await api.create_config(message, hostname)
+                if not data:
+                    text = "Your subscription has expired, would you like to renew it?"
+                    markup = BTN.pay_subscription(tgid)
+                    markup_delete = BTN.delete_message(tgid)
+                    return text, markup, markup_delete, None, lang
+                else:
+                    config = data["config"]
+
+                    text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
+                    return text, markup, markup_delete, qr_file, lang
+                
+            elif lang == "ru":
+                data, qr_file = await api.create_config(message, hostname)
+                if not data:
+                    text = "Ваша подписка закончилась, хотите её обновить?"
+                    markup = BTN.pay_with_crypto(tgid)
+                    markup_delete = BTN.delete_message_ru(tgid)
+                    return text, markup, markup_delete, None, lang
+                else:
+                    config = data["config"]
+
+                    text, markup, markup_delete = f"{config}", BTN.menu_ru(tgid), BTN.delete_message_ru(tgid)
+                    return text, markup, markup_delete, qr_file, lang
+        else:
+            if lang == "en":
+                text = "You have reached the configuration limit."
                 markup = BTN.pay_subscription(tgid)
                 markup_delete = BTN.delete_message(tgid)
-                return text, markup, markup_delete, None
-            else:
-                config = data["config"]
-
-                text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
-                return text, markup, markup_delete, qr_file
-            
-        elif language.get("lang") == "ru":
-            data, qr_file = await api.create_config(message, hostname)
-            if not data:
-                text = "Your subscription has expired, would you like to renew it?"
-                markup = BTN.pay_subscription_ru(tgid)
+                return text, markup, markup_delete, None, lang
+            elif lang == "ru":
+                text = "Вы исчерпали лимит конфигов."
+                markup = BTN.pay_with_crypto(tgid)
                 markup_delete = BTN.delete_message_ru(tgid)
-                return text, markup, markup_delete, None
-            else:
-                config = data["config"]
-
-                text, markup, markup_delete = f"{config}", BTN.menu_ru(tgid), BTN.delete_message_ru(tgid)
-                return text, markup, markup_delete, qr_file
-    
+                return text, markup, markup_delete, None, lang
     except Exception as e:
         # Обрабатываем любые исключения, которые могут возникнуть
         logger.error(f"Error in create_config: {str(e)}")
-        if language.get("lang") == "en":
+        if lang == "en":
             text = "An error occurred while generating the configuration. Please try again later."
             markup = BTN.menu(tgid)
             markup_delete = BTN.delete_message(tgid)
-            return text, markup, markup_delete, None
-        elif language.get("lang") == "ru":
-            text = "An error occurred while generating the configuration. Please try again later."
+            return text, markup, markup_delete, None, lang
+        elif lang == "ru":
+            text = "Произошла ошибка при генерации конфига. Пожалуйста попробуйте позже."
             markup = BTN.menu_ru(tgid)
             markup_delete = BTN.delete_message_ru(tgid)
-            return text, markup, markup_delete, None
+            return text, markup, markup_delete, None, lang
 #--------------------------------------------------------------------------
 
 async def config_menu(tgid: int):
     servers = await api.servers_count()
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
-        text, markup = lang_text.config_menu_en, BTN.config_menu(tgid, servers)
+    config_limit = (await api.check_config_limit(tgid)).get("configlimit")
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
+        text, markup = await lang_text.config_menu_en(config_limit), BTN.config_menu(tgid, servers)
         return text, markup
-    elif language.get("lang") == "ru":
-        text, markup = lang_text.config_menu_ru, BTN.config_menu_ru(tgid, servers)
+    elif lang == "ru":
+        text, markup = await lang_text.config_menu_ru(config_limit), BTN.config_menu_ru(tgid, servers)
         return text, markup
 #--------------------------------------------------------------------------
 
 async def account_menu(tgid: int):
-    balance = await api.getbalance(tgid)
     subsctiption = await api.getsubsctiption(tgid)
-    language = await api.check_language(tgid)
+    lang = (await api.check_language(tgid)).get("lang")
     current_time = int(time.time())
-
-    balance = balance.get("balance", 0)
     # Формируем вывод текста с учетом баланса
-    if language.get("lang") == "en":
+    if lang == "en":
         subscription_status = await format_subscription_status(subsctiption.get("subscription"), current_time)
-        text = await lang_text.account_menu_en(balance, subscription_status)
+        text = await lang_text.account_menu_en(subscription_status)
 
         # Возвращаем текст и разметку
         markup = BTN.account_menu(tgid)
         return text, markup
     
-    elif language.get("lang") == "ru":
+    elif lang == "ru":
         subscription_status = await format_subscription_status_ru(subsctiption.get("subscription"), current_time)
-        text = await lang_text.account_menu_ru(balance, subscription_status)
+        text = await lang_text.account_menu_ru(subscription_status)
 
         # Возвращаем текст и разметку
         markup = BTN.account_menu_ru(tgid)
@@ -151,23 +161,88 @@ async def account_menu(tgid: int):
 #--------------------------------------------------------------------------
 
 async def top_up_balance(tgid: int):
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
         text, markup = lang_text.top_up_balance_en, BTN.top_up_balance(tgid)
         return text, markup
     
-    elif language.get("lang") == "ru":
+    elif lang == "ru":
         text, markup = lang_text.top_up_balance_ru, BTN.top_up_balance_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
-async def pay_subscription(tgid: int):
-    language = await api.check_language(tgid)
-    if language.get("lang") == "en":
-        text, markup = lang_text.pay_subscription_en, BTN.pay_subscription(tgid)
+async def pay_with_crypto(tgid: int):
+    lang = (await api.check_language(tgid)).get("lang")
+    if lang == "en":
+        text, markup = lang_text.pay_subscription_en, BTN.pay_with_crypto(tgid)
         return text, markup
-    elif language.get("lang") == "ru":
-        text, markup = lang_text.pay_subscription_ru, BTN.pay_subscription_ru(tgid)
+    elif lang == "ru":
+        text, markup = lang_text.pay_subscription_ru, BTN.pay_with_crypto (tgid)
+        return text, markup
+#--------------------------------------------------------------------------
+
+async def pay_with_usdt(tgid: int):
+    lang = (await api.check_language(tgid)).get("lang")
+    one_month_usd = onemonth
+    six_month_usd = sixmonth  # 5 * 6 - 9% скидка
+    twelve_month_usd = year  # 5 * 12 - 18% скидка
+
+    if lang == "en":
+        text = await lang_text.usdt_sub_en(one_month_usd, six_month_usd, twelve_month_usd)
+        markup = BTN.pay_with_usdt(tgid)
+        return text, markup
+    
+    elif lang == "ru":
+        text = await lang_text.usdt_sub_ru(one_month_usd, six_month_usd, twelve_month_usd)
+        markup = BTN.pay_with_usdt(tgid)
+        return text, markup
+#--------------------------------------------------------------------------
+
+async def pay_with_btc(tgid: int):
+    lang = (await api.check_language(tgid)).get("lang")
+    crypto_type = "BTC"
+    six_month_crypto, twelve_month_crypto = await api.calculate_subscription_prices(crypto_type)
+    
+    if lang == "en":
+        text = await lang_text.bct_sub_en(six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_btc(tgid)
+        return text, markup
+    
+    elif lang == "ru":
+        text = await lang_text.bct_sub_ru(six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_btc(tgid)
+        return text, markup
+#--------------------------------------------------------------------------
+
+async def pay_with_ltc(tgid: int):
+    lang = (await api.check_language(tgid)).get("lang")
+    crypto_type = "LTC"
+    one_month_crypto, six_month_crypto, twelve_month_crypto = await api.calculate_subscription_prices(crypto_type)
+
+    if lang == "en":
+        text = await lang_text.ltc_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_ltc(tgid)
+        return text, markup
+    
+    elif lang == "ru":
+        text = await lang_text.ltc_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_ltc(tgid)
+        return text, markup
+#--------------------------------------------------------------------------
+
+async def pay_with_ton(tgid: int):
+    lang = (await api.check_language(tgid)).get("lang")
+    crypto_type = "TON"
+    one_month_crypto, six_month_crypto, twelve_month_crypto = await api.calculate_subscription_prices(crypto_type)
+
+    if lang == "en":
+        text = await lang_text.ton_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_ton(tgid)
+        return text, markup
+    
+    elif lang == "ru":
+        text = await lang_text.ton_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto)
+        markup = BTN.pay_with_ton(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -184,18 +259,7 @@ async def admins_cmd(message):
 #--------------------------------------------------------------------------
 async def admin_create_voucher(message):
     tgid = message.chat.id
-    text, markup = '''
-<b>Создание ваучеров</b>
-<i>Здесь вы можете создать ваучер на подписку для пользователей на указанный срок. Выберите один из вариантов ниже, чтобы сгенерировать соответствующий ваучер:</i>
-
-- <b>⏳ 1 Month</b>: Создаёт ваучер на 1 месяц подписки.
-
-- <b>🕰️ 6 Months</b>: Создаёт ваучер на 6 месяцев подписки.
-
-- <b>🌍 1 Year</b>: Создаёт ваучер на 1 год подписки.
-
-Нажмите соответствующую кнопку для создания ваучера.
-''', BTN.admin_create_voucher(tgid)
+    text, markup = lang_text.admin_createvoucher, BTN.admin_create_voucher(tgid)
     return text, markup
 #--------------------------------------------------------------------------
 
@@ -242,7 +306,7 @@ async def admin_create_voucher_six(message):
     tgid = message.chat.id
     r = await api.admin_create_voucher_six()
     vaucher_code = r.get("voucher")
-    text, markup = f"🎁< b>6 month voucher code:</> <code>{vaucher_code}</code>", BTN.admin_create_voucher(tgid)
+    text, markup = f"🎁<b>6 month voucher code:</b> <code>{vaucher_code}</code>", BTN.admin_create_voucher(tgid)
     return text, markup
 #--------------------------------------------------------------------------
 
@@ -302,9 +366,10 @@ async def format_subscription_status_ru(subscription_end: int, current_time: int
         minutes += 1
 
     remaining_time_parts = []
-
-    if days > 0:
-        remaining_time_parts.append(f"🗓️ {days} день{'a' if days > 1 else ''}")
+    if days == 1:
+        remaining_time_parts.append(f"🗓️ {days} суток")
+    elif days > 1:
+        remaining_time_parts.append(f"🗓️ {days} суток")
     if hours > 0:
         remaining_time_parts.append(f"⏰ {hours} час{'a' if hours > 1 else ''}")
     if minutes > 0:

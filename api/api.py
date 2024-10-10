@@ -178,10 +178,15 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
     tgid = int(data.get("tgid"))
     voucher_code = str(data.get("voucher_code"))
     old_voucher = int(data.get("subscription"))
+    lang = str(data.get("lang"))
 
     if not tgid or not voucher_code:
         logging.error("TGID or voucher code is missing.")
-        return {"Success": False, "Reason": "TGID or voucher code is missing."}
+        if lang == "en":
+            return {"Success": False, "Reason": "TGID or voucher code is missing."}
+        elif lang == "ru":
+            return {"Success": False, "Reason": "TGID или код ваучера отсутствует."}
+
 
     query_voucher = '''
     SELECT duration, is_used, expires_at FROM vouchers WHERE code = $1;
@@ -191,16 +196,25 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
         if not voucher:
             logging.error(f"Voucher with code {voucher_code} not found.")
+        if lang == "en":
             return {"Success": False, "Reason": "Voucher not found."}
-        
+        elif lang == "ru":
+            return {"Success": False, "Reason": "Ваучер не найден."}
+    
         if voucher["is_used"]:
             logging.error(f"Voucher {voucher_code} has already been used.")
-            return {"Success": False, "Reason": "Voucher has already been used."}
+            if lang == "en":
+                return {"Success": False, "Reason": "Voucher has already been used."}
+            elif lang == "ru":
+                return {"Success": False, "Reason": "Ваучер уже был использован."}
 
         current_time = int(time.time())
         if voucher["expires_at"] < current_time:
             logging.error(f"Voucher {voucher_code} has expired.")
-            return {"Success": False, "Reason": "Voucher has expired."}
+            if lang == "en":
+                return {"Success": False, "Reason": "Voucher has expired."}
+            elif lang == "ru":
+                return {"Success": False, "Reason": "Срок действия ваучера истек."}
 
 
         voucher_duration = int(voucher["duration"])
@@ -217,7 +231,10 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
         if result_sub is None:
             logging.error(f"Failed to update subscription for TGID: {tgid}")
-            return {"Success": False, "Reason": "Failed to update subscription."}
+            if lang == "en":
+                return {"Success": False, "Reason": "Failed to update subscription."}
+            elif lang == "ru":
+                return {"Success": False, "Reason": "Не удалось обновить подписку."}
 
         logging.info(f"Subscription for TGID {tgid} updated successfully with ID: {result_sub['id']}")
 
@@ -231,45 +248,27 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
 
         if result_voucher is None:
             logging.error(f"Failed to mark voucher {voucher_code} as used.")
-            return {"Success": False, "Reason": "Failed to mark voucher as used."}
+            if lang == "en":
+                return {"Success": False, "Reason": "Failed to mark voucher as used."}
+            elif lang == "ru":
+                return {"Success": False, "Reason": "Не удалось отметить ваучер как использованный."}
 
         logging.info(f"Voucher {voucher_code} marked as used with ID: {result_voucher['id']}")
 
-        return {"Success": True, "New Sub Expiration": new_sub_expiration}
+        if lang == "en":
+            return {"Success": True, "New Sub Expiration": new_sub_expiration}
+        elif lang == "ru":
+            return {"Success": True, "Новое время окончания подписки": new_sub_expiration}
     
     except Exception as ex:
         logging.error(f"Error during voucher activation: {str(ex)}")
-        return {"Success": False, "Reason": "Internal server error."}
+        if lang == "en":
+            return {"Success": False, "Reason": "Internal server error."}
+        elif lang == "ru":
+            return {"Success": False, "Reason": "Внутренняя ошибка сервера."}
 #--------------------------------------------------------------------------
 
-# 6. /user/getbalance/{tgid}
-async def getbalance(tgid: int) -> Dict[str, Any]:
-    """
-    """
-    
-    if not tgid:
-        logging.error("TGID is missing.")
-        return {"Success": False, "Reason": "TGID is missing."}
-    
-    query = '''
-        SELECT balance
-        FROM users
-        WHERE tgid = $1;
-    '''
-    
-    try:
-        r = await pg.fetch(query, tgid)
-        if r is None:
-            return {"Success": False, "Reason": "Can't find balance"}
-        else:
-            balance = r['balance']
-            return {"Success": True, "balance": balance}
-        
-    except Exception as ex:
-        return await handle_exception(ex)
-#--------------------------------------------------------------------------
-
-# 7. /user/getsubscription/{tgid}
+# 6. /user/getsubscription/{tgid}
 async def getsubscription(tgid: int) -> Dict[str, Any]:
     """
     Получение времени подписки по идентификатору Telegram пользователя.
@@ -296,7 +295,7 @@ async def getsubscription(tgid: int) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 8. /user/setlanguage
+# 7. /user/setlanguage
 async def setlanguage(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Изменение языка бота для пользователя на Русский
@@ -330,7 +329,7 @@ async def setlanguage(data: Dict[str, Any]) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 9. /user/checklanguage/{tgid}
+# 8. /user/checklanguage/{tgid}
 async def checklanguage(tgid: int) -> Dict[str, Any]:
     """
     """
@@ -352,6 +351,33 @@ async def checklanguage(tgid: int) -> Dict[str, Any]:
         else:
             lang = r['lang']
             return {"Success": True, "lang": lang}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 9. /user/configlimit/{tgid}
+async def configlimit(tgid: int) -> Dict[str, Any]:
+    """
+    """
+
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    
+    query = '''
+        SELECT configlimit
+        FROM users
+        WHERE tgid = $1;
+    '''
+
+    try:
+        r = await pg.fetch(query, tgid)  
+        if not r:
+            return {"Success": False, "Reason": "Can't find configlimit"}
+        else:
+            configlimit = r['configlimit']
+            return {"Success": True, "configlimit": configlimit}
         
     except Exception as ex:
         return await handle_exception(ex)

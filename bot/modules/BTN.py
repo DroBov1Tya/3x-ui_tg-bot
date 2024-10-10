@@ -2,22 +2,20 @@ import json
 from typing import List, Dict, Any
 from random import choice
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
-from config import CC
+from config import CC, onemonth, sixmonth, year
 
 #|=============================[Admin panel]=============================|
-# [🪄 Управление пользователями]
 # [🎫 Создать ваучер]
-# [🏠 Меню]
+# [🔙 Menu]
 # [❌ Delete]
 def admin(tgid):
-    btn1 = InlineKeyboardButton(text='🪄 Управление пользователями', callback_data=f'admin_users {tgid}')
-    btn2 = InlineKeyboardButton(text='🎫 Создать ваучер', callback_data=f'admin_create_voucher {tgid}')
-    btn3 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
-    btn4 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
+    btn1 = InlineKeyboardButton(text='🎫 Создать ваучер', callback_data=f'admin_create_voucher {tgid}')
+    btn2 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    btn3 = InlineKeyboardButton(text='❌ Delete', callback_data=f'delete {tgid}')
     buttons = [
-        [btn1, btn2],
-        [btn3],
-        [btn4]
+        [btn1],
+        [btn2],
+        [btn3]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
@@ -93,35 +91,26 @@ def menu_ru(tgid):
 
 #--------------------------------------------------------------------------
 
-# [💰 Top up balance]
 # [💳 Pay subscription]
-# [⚙️ Settings]
 # [🔙 Menu]
 def account_menu(tgid):
-    btn1 = InlineKeyboardButton(text='💰 Top up balance', callback_data=f'top_up_ballance {tgid}')
-    btn2 = InlineKeyboardButton(text='💳 Pay subscription', callback_data=f'pay_subscription {tgid}')
-    btn3 = InlineKeyboardButton(text='⚙️ Settings', callback_data=f'account_settings {tgid}')
-    btn4 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    btn1 = InlineKeyboardButton(text='💳 Pay subscription', callback_data=f'pay_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
     buttons = [
-        [btn1, btn2, btn3],
-        [btn4]
+        [btn1],
+        [btn2]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
 
-# [💰 Пополнить баланс]
 # [💳 Оплатить подписку]
-# [⚙️ Настройки]
 # [🔙 Меню]
 def account_menu_ru(tgid):
-    btn1 = InlineKeyboardButton(text='💰 Пополнить баланс', callback_data=f'top_up_balance {tgid}')
-    btn2 = InlineKeyboardButton(text='💳 Оплатить подписку', callback_data=f'pay_subscription {tgid}')
-    btn3 = InlineKeyboardButton(text='⚙️ Настройки', callback_data=f'account_settings {tgid}')
-    btn4 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
+    btn1 = InlineKeyboardButton(text='💳 Оплатить подписку', callback_data=f'top_up_balance {tgid}')
+    btn2 = InlineKeyboardButton(text='🔙 Меню', callback_data=f'menu {tgid}')
     buttons = [
-        [btn1, btn2],
-        [btn3],
-        [btn4]
+        [btn1],
+        [btn2],
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
@@ -153,15 +142,94 @@ def top_up_balance_ru(tgid):
 
 #--------------------------------------------------------------------------
 
+# [💵 USDT TRC-20]
+# [₿ Bitcoin]
+# [Ł Litecoin]
+# [🌀 TON]
+# [⏪ back] [🔙 Menu]
+def pay_with_crypto(tgid):
+    # Создание кнопок для разных криптовалют с соответствующими эмодзи
+    btn1 = InlineKeyboardButton(text='💵 USDT TRC-20', callback_data=f'pay_with_usdt {tgid}')
+    btn2 = InlineKeyboardButton(text='₿ Bitcoin', callback_data=f'pay_with_btc {tgid}')
+    btn3 = InlineKeyboardButton(text='Ł Litecoin', callback_data=f'pay_with_ltc {tgid}')
+    btn4 = InlineKeyboardButton(text='🌀 TON', callback_data=f'pay_with_ton {tgid}')
+    btn5 = InlineKeyboardButton(text='⏪ back', callback_data=f'top_up_balance {tgid}')
+    btn6 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3],
+        [btn4],
+        [btn5, btn6]
+    ]
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
 # [⏳ 1 Month Subscription]
 # [🕰️ 6 Months Subscription]
 # [🌍 1 Year Subscription]
-# [👤 Back] [🔙 Menu]
-def pay_subscription(tgid):
-    btn1 = InlineKeyboardButton(text='⏳ 1 Month Subscription', callback_data=f'one_month_subscription {tgid}')
-    btn2 = InlineKeyboardButton(text='🕰️ 6 Months Subscription', callback_data=f'six_months_subscription {tgid}')
-    btn3 = InlineKeyboardButton(text='🌍 1 Year Subscription', callback_data=f'year_subscription {tgid}')
-    btn4 = InlineKeyboardButton(text='👤 Back', callback_data=f'account_menu {tgid}')
+# [⏪ Back] [🔙 Menu]
+def pay_with_usdt(tgid):
+    btn1 = InlineKeyboardButton(text=f'⏳ 1 Month Subscription ~{onemonth}$', callback_data=f'usdt_one_month_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text=f'🕰️ 6 Months Subscription ~{sixmonth}$', callback_data=f'usdt_six_months_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text=f'🌍 1 Year Subscription ~{year}$', callback_data=f'usdt_year_subscription {tgid}')
+    btn4 = InlineKeyboardButton(text='⏪ back', callback_data=f'pay_with_crypto {tgid}')
+    btn5 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3],
+        [btn4, btn5]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [⏳ 1 Month Subscription]
+# [🕰️ 6 Months Subscription]
+# [🌍 1 Year Subscription]
+# [⏪ Back] [🔙 Menu]
+def pay_with_btc(tgid):
+    btn1 = InlineKeyboardButton(text=f'🕰️ 6 Months Subscription ~{sixmonth}$', callback_data=f'btc_six_months_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text=f'🌍 1 Year Subscription ~{year}$', callback_data=f'btc_year_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text='⏪ back', callback_data=f'pay_with_crypto {tgid}')
+    btn4 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3, btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [⏳ 1 Month Subscription]
+# [🕰️ 6 Months Subscription]
+# [🌍 1 Year Subscription]
+# [⏪ Back] [🔙 Menu]
+def pay_with_ltc(tgid):
+    btn1 = InlineKeyboardButton(text=f'⏳ 1 Month Subscription ~{onemonth}$', callback_data=f'ltc_one_month_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text=f'🕰️ 6 Months Subscription ~{sixmonth}$', callback_data=f'ltc_six_months_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text=f'🌍 1 Year Subscription ~{year}$', callback_data=f'ltc_year_subscription {tgid}')
+    btn4 = InlineKeyboardButton(text='⏪ back', callback_data=f'pay_with_crypto {tgid}')
+    btn5 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3],
+        [btn4, btn5]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [⏳ 1 Month Subscription]
+# [🕰️ 6 Months Subscription]
+# [🌍 1 Year Subscription]
+# [⏪ Back] [🔙 Menu]
+def pay_with_ton(tgid):
+    btn1 = InlineKeyboardButton(text=f'⏳ 1 Month Subscription ~{onemonth}$', callback_data=f'ton_one_month_subscription {tgid}')
+    btn2 = InlineKeyboardButton(text=f'🕰️ 6 Months Subscription ~{sixmonth}$', callback_data=f'ton_six_months_subscription {tgid}')
+    btn3 = InlineKeyboardButton(text=f'🌍 1 Year Subscription ~{year}$', callback_data=f'ton_year_subscription {tgid}')
+    btn4 = InlineKeyboardButton(text='⏪ back', callback_data=f'pay_with_crypto {tgid}')
     btn5 = InlineKeyboardButton(text='🔙 Menu', callback_data=f'menu {tgid}')
     buttons = [
         [btn1],

@@ -2,10 +2,10 @@ import base64
 import urllib.parse
 import os
 import tempfile
-import logging
 from asyncio import subprocess as sub
 from asyncio import create_subprocess_exec as create_sub
-from config import http, fastapi_url, fastapi_key
+from config import http, fastapi_url, fastapi_key, logger
+from config import onemonth, sixmonth, year
 
 headers = {
     "X-API-Key": fastapi_key
@@ -21,54 +21,54 @@ async def create_user(message):
             "last_name": message.chat.last_name
         }
     }
-    r = await http(f"http://api:8000/user/create", method='POST', data=d, headers=headers)
+    r = await http(f"{fastapi_url}/user/create", method='POST', data=d, headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def user_info(tgid): #DONE
-    r = await http(f"http://api:8000/user/{tgid}", headers=headers)
+    r = await http(f"{fastapi_url}/user/{tgid}", headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def agree(tgid):
-    r = await http(f"http://api:8000/user/agree/{tgid}", headers=headers)
+    r = await http(f"{fastapi_url}/user/agree/{tgid}", headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def is_admin(tgid):
-    r = await http(f"http://api:8000/admin/isadmin/{tgid}", headers=headers, method="GET")
+    r = await http(f"{fastapi_url}/admin/isadmin/{tgid}", headers=headers, method="GET")
     return r
 #--------------------------------------------------------------------------
 
 async def admin_ban(tgid):
-    r = await http(f"http://api:8000/admin/ban/{tgid}", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/ban/{tgid}", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_unban(tgid):
-    r = await http(f"http://api:8000/admin/unban/{tgid}", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/unban/{tgid}", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_one():
-    r = await http(f"http://api:8000/admin/voucherone", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucherone", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_six():
-    r = await http(f"http://api:8000/admin/vouchersix", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/vouchersix", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_year():
-    r = await http(f"http://api:8000/admin/voucheryear", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucheryear", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def create_config(message, hostname):
 
     encoded_hostname = urllib.parse.quote(hostname)
-    server_info = await http(method='GET', url = f"http://api:8000/xui/server_info/{encoded_hostname}", headers = headers)
+    server_info = await http(method='GET', url = f"{fastapi_url}/xui/server_info/{encoded_hostname}", headers = headers)
     d = {
         "hostname" : server_info["result"]["hostname"],
         "web_user" : server_info["result"]["web_user"],
@@ -78,7 +78,7 @@ async def create_config(message, hostname):
         "tg_nick"  : message.chat.username
     }
 
-    r = await http(method='POST', url = "http://api:8000/xui/inbound_creation", headers=headers, data = d)
+    r = await http(method='POST', url = f"{fastapi_url}/xui/inbound_creation", headers=headers, data = d)
     if not r["Success"]:
         return False, None
     else:
@@ -94,8 +94,13 @@ async def create_config(message, hostname):
         return r, temp_qr_file_path
 #--------------------------------------------------------------------------
 
+async def check_config_limit(tgid):
+    r = await http(f"{fastapi_url}/user/configlimit/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+
 async def servers_count():
-    r = await http(f"http://api:8000/xui/servers_count", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/xui/servers_count", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
@@ -118,14 +123,14 @@ async def check_voucher(tgid: int, voucher: str):
 
     # Отправляем POST-запрос в API для проверки ваучера
     try:
-        r = await http(f"http://api:8000/user/checkvoucher", method='POST', data=data, headers=headers)
+        r = await http(f"{fastapi_url}/user/checkvoucher", method='POST', data=data, headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
         return {"Success": False, "Reason": str(ex)}
 #--------------------------------------------------------------------------
 
-async def process_voucher(tgid: int, voucher: str):
+async def process_voucher(tgid: int, voucher: str, lang: str):
     """
     Функция для отправки запроса в API для активации ваучера.
 
@@ -139,24 +144,16 @@ async def process_voucher(tgid: int, voucher: str):
     
     # Отправляем POST-запрос в API для активации ваучера
     try:
-        subscription_request = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
+        subscription_request = await http(f"{fastapi_url}/user/getsubscription/{tgid}", method='GET', headers=headers)
 
         data = {
                 "tgid": tgid,
                 "voucher_code": voucher,
+                "lang" : lang,
                 "subscription" : subscription_request.get("subscription")
             }
 
-        r = await http(f"http://api:8000/user/activatevoucher", method='POST', data=data)
-        return r
-    except Exception as ex:
-        # Обработка ошибок
-        return {"Success": False, "Reason": str(ex)}
-#--------------------------------------------------------------------------
-
-async def getbalance(tgid: int):
-    try:
-        r = await http(f"http://api:8000/user/getbalance/{tgid}", method='GET', headers=headers)
+        r = await http(f"{fastapi_url}/user/activatevoucher", method='POST', data=data, headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
@@ -165,7 +162,7 @@ async def getbalance(tgid: int):
 
 async def getsubsctiption(tgid: int):
     try:
-        r = await http(f"http://api:8000/user/getsubscription/{tgid}", method='GET', headers=headers)
+        r = await http(f"{fastapi_url}/user/getsubscription/{tgid}", method='GET', headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
@@ -178,7 +175,7 @@ async def set_language(tgid, lang):
         "tgid" : tgid
     }
     try:
-        r = await http(method="POST", url="http://api:8000/user/setlanguage", data=data, headers=headers)
+        r = await http(method="POST", url=f"{fastapi_url}/user/setlanguage", data=data, headers=headers)
         return r
     except Exception as ex:
         return {"Success": False, "Reason": str(ex)}
@@ -186,8 +183,96 @@ async def set_language(tgid, lang):
 
 async def check_language(tgid):
     try:
-        r = await http(f"http://api:8000/user/checklanguage/{tgid}", method='GET', headers=headers)
+        r = await http(f"{fastapi_url}/user/checklanguage/{tgid}", method='GET', headers=headers)
         return r
     except Exception as ex:
         return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+async def get_crypto_prices_btc():
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,litecoin,the-open-network&vs_currencies=usd"
+
+    try:
+        response = await http(url=url, method="GET")
+        if response is None:
+            logger.error(f"Error fetching BTC data: {response}")
+            return {"Success": False, "Reason": "No response data"}
+        else:
+            return float(response['bitcoin']['usd'])
+        
+    except Exception as ex:
+        logger.error(f"Exception occurred while fetching BTC data: {str(ex)}")
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+# Функция для получения цены Litecoin
+async def get_crypto_prices_ltc():
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,litecoin,the-open-network&vs_currencies=usd"
+
+    try:
+        response = await http(url=url, method="GET")
+        if response is None:
+            logger.error(f"Error fetching LTC data: {response}")
+            return {"Success": False, "Reason": "No response data"}
+        else:
+            return float(response['litecoin']['usd'])
+        
+    except Exception as ex:
+        logger.error(f"Exception occurred while fetching LTC data: {str(ex)}")
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+# Функция для получения цены TON
+async def get_crypto_prices_ton():
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,litecoin,the-open-network&vs_currencies=usd"
+
+    try:
+        response = await http(url=url, method="GET")
+        if response is None:
+            logger.error(f"Error fetching TON data: {response}")
+            return {"Success": False, "Reason": "No response data"}
+        else:
+            return float(response['the-open-network']['usd'])
+        
+    except Exception as ex:
+        logger.error(f"Exception occurred while fetching TON data: {str(ex)}")
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------
+
+async def calculate_subscription_prices(crypto_type):
+    try:
+        # Цена подписки в долларах
+        one_month_usd: int = onemonth # Стоимость за 1 месяц
+        six_month_usd: int = sixmonth  # Стоимость за 6 месяцев с учетом скидки
+        twelve_month_usd: int = year 
+
+        if crypto_type == "BTC":
+            crypto_price: float = await get_crypto_prices_btc()
+
+            six_month_crypto = six_month_usd / crypto_price
+            twelve_month_crypto = (twelve_month_usd * 1.08) / crypto_price  # 18% скидка
+
+            return round(six_month_crypto, 5), round(twelve_month_crypto, 7)
+
+        elif crypto_type =="LTC":
+            crypto_price: float = await get_crypto_prices_ltc()
+
+            one_month_crypto = one_month_usd / crypto_price
+            six_month_crypto = six_month_usd / crypto_price  # 9% скидка
+            twelve_month_crypto = twelve_month_usd / crypto_price  # 18% скидка
+
+            return round(one_month_crypto, 3), round(six_month_crypto, 3), round(twelve_month_crypto, 3)
+
+        elif crypto_type == "TON":
+            crypto_price: float = await get_crypto_prices_ton()
+
+            one_month_crypto = one_month_usd / crypto_price
+            six_month_crypto = six_month_usd / crypto_price  # 9% скидка
+            twelve_month_crypto = twelve_month_usd / crypto_price  # 18% скидка
+
+            return round(one_month_crypto, 2), round(six_month_crypto, 2), round(twelve_month_crypto, 2)
+    
+    except Exception as ex:
+        logger.error(f"Exception occurred while fetching crypto data: {str(ex)}")
+        return None, None, None
 #--------------------------------------------------------------------------
