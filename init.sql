@@ -61,6 +61,21 @@ CREATE TABLE vouchers (
     expires_at      BIGINT -- Дата окончания действия ваучера
 );
 
+CREATE TABLE invoices (
+    id                      SERIAL PRIMARY KEY,
+    tgid                    INT,
+    invoice_id              INT,
+    invoice_hash            TEXT,
+    currency_type           TEXT,
+    asset                   TEXT,
+    amount                  TEXT,
+    invoice_description     TEXT,
+    invoice_status          TEXT,
+    created_at              TEXT,
+    expiration_date         TEXT
+);
+
+
 INSERT INTO users
     (id, tgid, tg_user, config_limit, is_banned, is_admin)
 VALUES

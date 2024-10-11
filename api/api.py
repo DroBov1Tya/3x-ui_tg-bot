@@ -1,12 +1,14 @@
 import logging
 import time
-from config import PostgreSQL
+from config import PostgreSQL, cryptobot_token, cryptobot_debug
 from src import redis_func
 from src import xui_func
 from src import ssh_func
 from src.generator_func import voucher_generator
 from typing import Dict, Any, Union
+from src.cryptopay import Crypto
 
+crypto = Crypto(cryptobot_token, testnet = cryptobot_debug)
 pg = PostgreSQL()
 logger = logging.getLogger(__name__)
 
@@ -1011,3 +1013,52 @@ async def server_down(data: Dict[str, Any]) -> Dict[str, Any]:
     
     except Exception as ex:
         return await handle_exception(ex)
+
+async def create_invoice(data: Dict[str, Any]) -> Dict[str, Any]:
+    
+    tgid = data.get("tgid")
+    crypto_type = data.get("crypto_type")
+    amount = data.get("amount")
+    description = data.get("description")
+
+    params = {
+        "description": description,
+        "expires_in": 300
+    }
+    
+    create_invoice_cryptobot = await crypto.createInvoice(crypto_type, amount, params)
+
+    if create_invoice_cryptobot:
+
+        query = '''
+            INSERT INTO invoices (tgid, invoice_id, invoice_hash, currency_type, asset, amount, invoice_description, invoice_status, created_at, expiration_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        '''
+        invoice_result = create_invoice_cryptobot.get("result")
+        values = (
+            tgid,
+            invoice_result.get("invoice_id"),
+            invoice_result.get("hash"),
+            invoice_result.get("currency_type"),
+            invoice_result.get("asset"),
+            invoice_result.get("amount"),
+            invoice_result.get("description"),
+            invoice_result.get("status"),
+            invoice_result.get("created_at"),
+            invoice_result.get("expiration_date")
+        )
+        print(f"Executing query: {query} with values: {values}")
+        try:
+            r = await pg.execute(query, values)
+            if r is None:
+                return {"Success" : True, "invoice_link" : invoice_result.get("pay_url")}
+
+            else:
+                return {"Success": False}
+            
+        except Exception as ex:
+            return await handle_exception(ex)
+#--------------------------------------------------------------------------
+async def check_invoice() -> Dict[str, Any]:
+        
+        pass

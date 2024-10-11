@@ -21,8 +21,10 @@ red_ttl: int = os.getenv('REDIS_EXPIRE')
 cryptobot_debug: str = os.getenv("CRYPTOBOT_DEBUG")
 
 if cryptobot_debug == "TRUE":
-    cryptobot_tokeng: str = os.getenv("CRYPTOBOT_TOKEN_DEBUG")
+    cryptobot_debug = True
+    cryptobot_token: str = os.getenv("CRYPTOBOT_TOKEN_DEBUG")
 else:
+    cryptobot_debug = False
     cryptobot_token: str = os.getenv("CRYPTOBOT_TOKEN")
 
 # VARS # 
@@ -189,18 +191,18 @@ class RedisClient:
         raw_items = [json.loads(item) for item in items]
         return [json.loads(item) for item in raw_items]
 
-async def http(url: str, method: str = "GET", headers = None, data = None, json = None, file = None, proxies = None, verify = None, timeout = 120):
+async def http(url: str, method: str = "GET", headers = None, params = None, data = None, json = None, file = None, proxies = None, verify = None, timeout = 120):
     timeout_config = httpx.Timeout(timeout)
 
     try:
         async with httpx.AsyncClient(proxies=proxies, headers=headers, verify=verify, follow_redirects=True, timeout=timeout_config) as req:
             if method != "POST":
-                resp = await req.get(url=url) # [GET]
+                resp = await req.get(url=url, params=params) # [GET]
             elif file is None:
-                resp = await req.post(url=url, data=data, json=json) # [POST] with json in body
+                resp = await req.post(url=url, data=data, json=json, params=params) # [POST] with json in body
             else:
                 files = {'file': (file.filename, file.file)}
-                resp = await req.post(url=url, files=files)# [POST] with file in body 
+                resp = await req.post(url=url, files=files, params=params)# [POST] with file in body 
 
             result = resp
 

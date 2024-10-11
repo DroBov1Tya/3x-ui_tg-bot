@@ -287,7 +287,7 @@ Choose the payment method that suits you best and enjoy uninterrupted access to 
 
 We use <b>CryptoBot Telegram</b> for fast and convenient cryptocurrency payments. Please select one of the available cryptocurrencies for payment:
 
-- 💵 <b>USDT (TRC-20):</b> Ideal for stable and secure payments.
+- 💵 <b>USDT :</b> Ideal for stable and secure payments.
 
 - ₿ <b>Bitcoin:</b> A reliable choice for those who prefer BTC.
 
@@ -304,7 +304,7 @@ pay_subscription_ru = '''
 
 Мы используем <b>CryptoBot Telegram</b> для быстрых и удобных платежей в криптовалюте. Выберите одну из доступных криптовалют для оплаты:
 
-- <b>💰 USDT (TRC-20):</b> Подходит для стабильных и безопасных платежей.
+- <b>🅣 USDT :</b> Подходит для стабильных и безопасных платежей.
 
 - <b>₿ Bitcoin:</b> Надежный выбор для тех, кто предпочитает BTC.
 
@@ -320,7 +320,7 @@ pay_with_crypto_en = '''
 
 You can pay for your subscription using the following cryptocurrencies:
 
-1. 💰 USDT (TRC-20)
+1. 🅣 USDT 
 2. ₿ Bitcoin
 3. Ł Litecoin
 4. 💎 TON
@@ -333,7 +333,7 @@ pay_with_crypto_ru = '''
 
 Вы можете оплатить подписку с помощью следующих криптовалют:
 
-1. 💰 USDT (TRC-20)
+1. 🅣 USDT 
 2. ₿ Bitcoin
 3. Ł Litecoin
 4. 💎 TON
@@ -345,9 +345,9 @@ async def usdt_sub_en(one_month_crypto, six_month_crypto, twelve_month_crypto):
     text = f'''
 💼 <b>Choose a payment method for your VPN subscription:</b>
 
-🔹 <b>1 Month Subscription:</b> {one_month_crypto}$ 💰 USDT TRC-20
-🔹 <b>6 Months Subscription:</b> {six_month_crypto}$ 💰 USDT TRC-20 (10% discount 🎫)  
-🔹 <b>12 Months Subscription:</b> {twelve_month_crypto}$ 💰 USDT TRC-20 (18% discount 🎫)
+🔹 <b>1 Month Subscription:</b> {one_month_crypto}$ 🅣 USDT
+🔹 <b>6 Months Subscription:</b> {six_month_crypto}$ 🅣 USDT (10% discount 🎫)  
+🔹 <b>12 Months Subscription:</b> {twelve_month_crypto}$ 🅣 USDT (18% discount 🎫)
 
 💳 <b>Available payment methods:</b>
 
@@ -359,9 +359,9 @@ async def usdt_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto):
     text = f'''
 💼 <b>Выберите способ оплаты для вашей подписки на VPN:</b>
 
-🔹 <b>1 месяц подписки:</b> {one_month_crypto}$ 💰 USDT TRC-20
-🔹 <b>6 месяцев подписки:</b> {six_month_crypto}$ 💰 USDT TRC-20 (🎫 скидка 10%)  
-🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto}$ 💰 USDT TRC-20 (🎫 скидка 18%)
+🔹 <b>1 месяц подписки:</b> {one_month_crypto}$ 🅣 USDT
+🔹 <b>6 месяцев подписки:</b> {six_month_crypto}$ 🅣 USDT (🎫 скидка 10%)  
+🔹 <b>12 месяцев подписки:</b> {twelve_month_crypto}$ 🅣 USDT (🎫 скидка 18%)
 
 💳 <b>Доступные способы оплаты:</b>
 
@@ -475,3 +475,18 @@ admin_createvoucher = '''
 
 Нажмите соответствующую кнопку для создания ваучера.
 '''
+
+create_invoice_en = '''
+<b>To complete the payment, press the button below ⬇️</b>
+After payment, your subscription will be activated within 30 seconds ⏳
+Thank you for choosing our service! 🙌
+
+'''
+
+create_invoice_ru = '''
+<b>Для оплаты нажмите кнопку ниже ⬇️</b>
+
+После оплаты ваша подписка активируется в течение 30 секунд ⏳
+Спасибо за использование нашего сервиса! 🙌
+'''
+

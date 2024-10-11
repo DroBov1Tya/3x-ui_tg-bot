@@ -213,6 +213,18 @@ async def getMe():
     return r
 #--------------------------------------------------------------------------
 
+# 2. /cryptobot/create_invoice
+@app.post("/cryptobot/create_invoice", tags=[Tags.cryptobot], summary="test token")
+async def create_invoice(dict = Body(ex.create_invoice)):
+    r = await api.create_invoice(dict)
+    return r
+#--------------------------------------------------------------------------
+
+# 3. /cryptobot/check_invoice
+@app.post("/cryptobot/check_invoice", tags=[Tags.cryptobot], summary="test token")
+async def check_invoice():
+    r = await api.check_invoice()
+    return r
 
 
 #|=============================[redis routes]=============================|

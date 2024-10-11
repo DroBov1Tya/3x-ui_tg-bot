@@ -284,3 +284,17 @@ async def calculate_subscription_prices(crypto_type):
         logger.error(f"Exception occurred while fetching crypto data: {str(ex)}")
         return None, None, None
 #--------------------------------------------------------------------------
+
+async def create_invoice(tgid, crypto_type, amount, description):
+    data = {
+        "tgid" : tgid,
+        "crypto_type" : crypto_type,
+        "amount": amount,
+        "description" : description
+    }
+    try:
+        r = await http(f"{fastapi_url}/cryptobot/create_invoice", method='POST', data=data, headers=headers)
+        return r
+    except Exception as ex:
+        return {"Success": False, "Reason": str(ex)}
+#--------------------------------------------------------------------------

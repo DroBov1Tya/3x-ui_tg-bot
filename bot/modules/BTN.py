@@ -142,14 +142,14 @@ def top_up_balance_ru(tgid):
 
 #--------------------------------------------------------------------------
 
-# [💰 USDT TRC-20]
+# [🅣 USDT]
 # [₿ Bitcoin]
 # [Ł Litecoin]
 # [💎 TON]
 # [🔙 Back] [🏠 Menu]
 def pay_with_crypto(tgid):
     # Создание кнопок для разных криптовалют с соответствующими эмодзи
-    btn1 = InlineKeyboardButton(text='💰 USDT TRC-20', callback_data=f'pay_with_usdt {tgid}')
+    btn1 = InlineKeyboardButton(text='🅣 USDT', callback_data=f'pay_with_usdt {tgid}')
     btn2 = InlineKeyboardButton(text='₿ Bitcoin', callback_data=f'pay_with_btc {tgid}')
     btn3 = InlineKeyboardButton(text='Ł Litecoin', callback_data=f'pay_with_ltc {tgid}')
     btn4 = InlineKeyboardButton(text='💎 TON', callback_data=f'pay_with_ton {tgid}')
@@ -240,14 +240,14 @@ def pay_with_ton(tgid):
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
 
-# [💰 USDT TRC-20]
+# [🅣 USDT]
 # [₿ Bitcoin]
 # [Ł Litecoin]
 # [💎 TON]
 # [🔙 Назад] [🏠 Меню]
 def pay_with_crypto_ru(tgid):
     # Создание кнопок для разных криптовалют с соответствующими эмодзи
-    btn1 = InlineKeyboardButton(text='💰 USDT TRC-20', callback_data=f'pay_with_usdt {tgid}')
+    btn1 = InlineKeyboardButton(text='🅣 USDT', callback_data=f'pay_with_usdt {tgid}')
     btn2 = InlineKeyboardButton(text='₿ Bitcoin', callback_data=f'pay_with_btc {tgid}')
     btn3 = InlineKeyboardButton(text='Ł Litecoin', callback_data=f'pay_with_ltc {tgid}')
     btn4 = InlineKeyboardButton(text='💎 TON', callback_data=f'pay_with_ton {tgid}')
@@ -352,6 +352,16 @@ def pay_subscription_ru(tgid):
         [btn2],
         [btn3],
         [btn4, btn5]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+def cryptopay(tgid, link):
+    btn1 = InlineKeyboardButton(text='🪙 Оплатить', url = link)
+    btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'pay_with_crypto {tgid}')
+    buttons = [
+        [btn1],
+        [btn2]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------

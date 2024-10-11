@@ -47,3 +47,9 @@ class ex:
         "lang" : "ru",
         "tgid" : 8565434
     }
+
+    create_invoice = {
+        "tgid" : 8565434,
+        "crypto_type" : "TON",
+        "amount": 1
+    }
