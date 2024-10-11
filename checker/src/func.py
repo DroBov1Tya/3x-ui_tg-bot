@@ -42,4 +42,5 @@ class PortChecker:
             logger.info("Calling server_down for %s", self.hostname)
             await api.server_down(self.hostname)
             logger.info("Calling remove_configs for %s", self.hostname)
+            await api.restore_config_limits(self.hostname)
             await api.remove_configs(self.hostname)

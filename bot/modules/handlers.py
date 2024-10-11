@@ -53,6 +53,7 @@ async def start_voucher_process(message: Message, state: FSMContext):
         await message.answer("🎫 Введите код ваучера:")
         # Устанавливаем состояние ожидания ваучера
         await state.set_state(VoucherStates.waiting_for_voucher)
+
 @router.message(StateFilter(VoucherStates.waiting_for_voucher))
 async def process_voucher_input(message: Message, state: FSMContext):
     """
@@ -62,14 +63,18 @@ async def process_voucher_input(message: Message, state: FSMContext):
     # Извлекаем введённый код ваучера
     voucher_code = message.text.strip()
     lang = (await api.check_language(message.chat.id)).get("lang")
-    # Отправляем запрос в API для проверки ваучера, передавая tgid и код ваучера
     response = await api.check_voucher(message.chat.id, voucher_code)
+    print(response)
+
     if lang == "en":
         # Проверяем ответ API
         if response["Success"]:
-            await message.answer("The voucher has been activated! You have received a subscription.")
-            # Логика активации подписки в API
-            await api.process_voucher(message.chat.id, voucher_code)  # Активируем подписку через API
+            r = await api.process_voucher(message.chat.id, voucher_code, lang)  # Активируем подписку через API
+            print(r)
+            if r["Success"]:
+                await message.answer("The voucher has been activated! You have received a subscription.")
+            else:
+                await message.answer(r["Reason"])
         else:
             await message.answer(f"Error: {response['Reason']}")
     
@@ -424,18 +429,78 @@ async def pay_with_ton(call: types.CallbackQuery):
 
 
 
-
-@router.callback_query(F.data.startswith("one_month_subscription "))
+#USDT TRC-20 оплата на месяц
+@router.callback_query(F.data.startswith("usdt_one_month_subscription "))
 async def one_month_subscription(call: types.CallbackQuery):
     text, markup = await bot_logic.one_month_subscription(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("six_months_subscription "))
+
+#USDT TRC-20 оплата на 6 месяцев
+@router.callback_query(F.data.startswith("usdt_six_months_subscription "))
 async def six_months_subscription(call: types.CallbackQuery):
     text, markup = await bot_logic.six_months_subscription(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)
 #--------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("year_subscription "))
+
+#USDT TRC-20 оплата на год
+@router.callback_query(F.data.startswith("usdt_year_subscription "))
+async def year_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.year_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#BTC оплата на 6 месяцев
+@router.callback_query(F.data.startswith("btc_six_months_subscription "))
+async def six_months_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.six_months_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#BTC оплата на год
+@router.callback_query(F.data.startswith("btc_year_subscription "))
+async def year_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.year_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#LTC оплата на месяц
+@router.callback_query(F.data.startswith("ltc_one_month_subscription "))
+async def one_month_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.one_month_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#LTC оплата на 6 месяцев
+@router.callback_query(F.data.startswith("ltc_six_months_subscription "))
+async def six_months_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.six_months_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#LTC оплата на год
+@router.callback_query(F.data.startswith("ltc_year_subscription "))
+async def year_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.year_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#TON оплата на месяц
+@router.callback_query(F.data.startswith("ton_one_month_subscription "))
+async def one_month_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.one_month_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#TON оплата на 6 месяцев
+@router.callback_query(F.data.startswith("ton_six_months_subscription "))
+async def six_months_subscription(call: types.CallbackQuery):
+    text, markup = await bot_logic.six_months_subscription(call.message.chat.id)
+    await call.message.edit_text(text=text, reply_markup=markup)
+#--------------------------------------------------------------------------
+
+#TON оплата на год
+@router.callback_query(F.data.startswith("ton_year_subscription "))
 async def year_subscription(call: types.CallbackQuery):
     text, markup = await bot_logic.year_subscription(call.message.chat.id)
     await call.message.edit_text(text=text, reply_markup=markup)

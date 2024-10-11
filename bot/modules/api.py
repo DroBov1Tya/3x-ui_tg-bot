@@ -51,21 +51,21 @@ async def admin_unban(tgid):
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_one():
-    r = await http(f"{fastapi_url}/admin/voucherone", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucher_one", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_six():
-    r = await http(f"{fastapi_url}/admin/vouchersix", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucher_one", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_year():
-    r = await http(f"{fastapi_url}/admin/voucheryear", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucher_one", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
-async def create_config(message, hostname):
+async def create_config(message, hostname, config_ttl):
 
     encoded_hostname = urllib.parse.quote(hostname)
     server_info = await http(method='GET', url = f"{fastapi_url}/xui/server_info/{encoded_hostname}", headers = headers)
@@ -75,7 +75,8 @@ async def create_config(message, hostname):
         "web_pass" : server_info["result"]["web_pass"],
         "web_path" : server_info["result"]["web_path"],
         "tgid"     : message.chat.id,
-        "tg_nick"  : message.chat.username
+        "tg_nick"  : message.chat.username,
+        "config_ttl" : config_ttl
     }
 
     r = await http(method='POST', url = f"{fastapi_url}/xui/inbound_creation", headers=headers, data = d)
@@ -95,7 +96,12 @@ async def create_config(message, hostname):
 #--------------------------------------------------------------------------
 
 async def check_config_limit(tgid):
-    r = await http(f"{fastapi_url}/user/configlimit/{tgid}", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/user/config_limit/{tgid}", method='GET', headers=headers)
+    return r
+#--------------------------------------------------------------------------
+
+async def reduce_config_limit(tgid):
+    r = await http(f"{fastapi_url}/user/reduce_config_limit/{tgid}", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
@@ -123,7 +129,7 @@ async def check_voucher(tgid: int, voucher: str):
 
     # Отправляем POST-запрос в API для проверки ваучера
     try:
-        r = await http(f"{fastapi_url}/user/checkvoucher", method='POST', data=data, headers=headers)
+        r = await http(f"{fastapi_url}/user/check_voucher", method='POST', data=data, headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
@@ -144,7 +150,7 @@ async def process_voucher(tgid: int, voucher: str, lang: str):
     
     # Отправляем POST-запрос в API для активации ваучера
     try:
-        subscription_request = await http(f"{fastapi_url}/user/getsubscription/{tgid}", method='GET', headers=headers)
+        subscription_request = await http(f"{fastapi_url}/user/get_subscription/{tgid}", method='GET', headers=headers)
 
         data = {
                 "tgid": tgid,
@@ -153,7 +159,9 @@ async def process_voucher(tgid: int, voucher: str, lang: str):
                 "subscription" : subscription_request.get("subscription")
             }
 
-        r = await http(f"{fastapi_url}/user/activatevoucher", method='POST', data=data, headers=headers)
+        print(data)
+        
+        r = await http(f"{fastapi_url}/user/activate_voucher", method='POST', data=data, headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
@@ -162,7 +170,7 @@ async def process_voucher(tgid: int, voucher: str, lang: str):
 
 async def getsubsctiption(tgid: int):
     try:
-        r = await http(f"{fastapi_url}/user/getsubscription/{tgid}", method='GET', headers=headers)
+        r = await http(f"{fastapi_url}/user/get_subscription/{tgid}", method='GET', headers=headers)
         return r
     except Exception as ex:
         # Обработка ошибок
@@ -175,7 +183,7 @@ async def set_language(tgid, lang):
         "tgid" : tgid
     }
     try:
-        r = await http(method="POST", url=f"{fastapi_url}/user/setlanguage", data=data, headers=headers)
+        r = await http(method="POST", url=f"{fastapi_url}/user/set_language", data=data, headers=headers)
         return r
     except Exception as ex:
         return {"Success": False, "Reason": str(ex)}
@@ -183,7 +191,7 @@ async def set_language(tgid, lang):
 
 async def check_language(tgid):
     try:
-        r = await http(f"{fastapi_url}/user/checklanguage/{tgid}", method='GET', headers=headers)
+        r = await http(f"{fastapi_url}/user/check_language/{tgid}", method='GET', headers=headers)
         return r
     except Exception as ex:
         return {"Success": False, "Reason": str(ex)}

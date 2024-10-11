@@ -23,6 +23,7 @@ services:
         networks:
             - 3xui_network
 
+
     web:
         hostname: web
         container_name: web
@@ -36,9 +37,11 @@ services:
             - "80:80"
         restart: always
         depends_on:
+            - api
             - redis    
         networks:
             - 3xui_network
+
 
     checker:
         hostname: checker
@@ -55,6 +58,7 @@ services:
         networks:
             - 3xui_network
 
+
     api:
         hostname: fastapi
         container_name: fastapi
@@ -66,6 +70,9 @@ services:
             POSTGRES_DSN: "postgresql://postgres:${POSTGRES_PASSWD}@psql:5432/${POSTGRES_DB}"
             REDIS_DSN: ${REDIS_DSN}
             REDIS_EXPIRE: ${REDIS_EXPIRE}
+            CRYPTOBOT_TOKEN: ${CRYPTOBOT_TOKEN}
+            CRYPTOBOT_TOKEN_DEBUG: ${CRYPTOBOT_TOKEN_DEBUG}
+            CRYPTOBOT_DEBUG: ${CRYPTOBOT_DEBUG}
         command: bash -c 'while !</dev/tcp/psql/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
         ports:
             - "8000:8000"
@@ -75,6 +82,7 @@ services:
             - psql
         networks:
             - 3xui_network
+
 
 
     psql:
@@ -109,11 +117,55 @@ services:
             - 3xui_network
 
 
+    loki:
+        image: grafana/loki:2.0.0
+        hostname: loki
+        restart: always
+        # ports:
+        #     - "3100:3100"
+        volumes:
+            - ./loki-config.yaml:/etc/loki/local-config.yaml
+        networks:
+            - logging_network
+
+    promtail:
+        image: grafana/promtail:2.0.0
+        restart: always
+        volumes:
+            - /var/log:/var/log
+            - /var/lib/docker/containers:/var/lib/docker/containers
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./promtail-config.yml:/etc/promtail/config.yml
+        command:
+            -config.file=/etc/promtail/config.yml
+        depends_on:
+            - loki
+        networks:
+            - logging_network
+
+    grafana:
+        image: grafana/grafana:latest
+        restart: always
+        ports:
+            - "3000:3000"
+        environment:
+            GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+            GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+        depends_on:
+            - loki
+        networks:
+            - logging_network
+
+
+
 
 volumes:
     psql-data: 
+    esdata:
 
 
 networks:
     3xui_network:
+        driver: bridge
+    logging_network:
         driver: bridge

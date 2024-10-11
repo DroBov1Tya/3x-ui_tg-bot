@@ -3,14 +3,14 @@
 CREATE TABLE users (
     id              serial PRIMARY KEY,
     tgid            BIGINT NOT NULL UNIQUE,
-    nickname        TEXT,
+    tg_user        TEXT,
     first_name      TEXT,
     last_name       TEXT,
-    configlimit     SMALLINT NOT NULL DEFAULT 30,
+    config_limit     SMALLINT NOT NULL,
     user_level      SMALLINT DEFAULT 0, /* 0 - demo, 1 - basic, 2 - advanced, 3 - premium */
     is_banned       boolean NOT NULL DEFAULT true,
     is_admin        boolean NOT NULL DEFAULT false,
-    sub             BIGINT DEFAULT 0, /* Unix time для окончания подписки */
+    sub             BIGINT, /* Unix time для окончания подписки */
     lang            TEXT NOT NULL DEFAULT 'en',
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -62,6 +62,6 @@ CREATE TABLE vouchers (
 );
 
 INSERT INTO users
-    (id, tgid, nickname, is_banned, is_admin)
+    (id, tgid, tg_user, config_limit, is_banned, is_admin)
 VALUES
-    (1, 385922337, 'drobov1k', false, true)
+    (1, 385922337, 'XoyDubina', 500, false, true)

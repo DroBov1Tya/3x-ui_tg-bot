@@ -53,17 +53,17 @@ async def user_create(data: Dict[str, Any]) -> Dict[str, Any]:
 
     userinfo = data['user']
     tgid = userinfo['tgid']
-    nickname = userinfo['nickname']
+    tg_user = userinfo['nickname']
     first_name = userinfo['first_name']
     last_name = userinfo['last_name']
     
     query = """
         INSERT INTO users 
-        (tgid, nickname, first_name, last_name, is_banned) 
-        VALUES ($1, $2, $3, $4, $5) 
+        (tgid, tg_user, first_name, last_name, config_limit, is_banned, sub) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
         ON CONFLICT (tgid) DO NOTHING RETURNING true;
     """
-    values = (tgid, nickname, first_name, last_name, True)
+    values = (tgid, tg_user, first_name, last_name, 15, True, 0)
     
     try:
         r = await pg.fetch(query, *values)
@@ -120,8 +120,8 @@ async def agree(tgid: str) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 4. /user/checkvoucher
-async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
+# 4. /user/check_voucher
+async def check_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Функция для проверки ваучера в базе данных. 
     Возвращает информацию о ваучере: его статус (активен или нет), длительность и срок действия.
@@ -163,7 +163,7 @@ async def checkvoucher(data: Dict[str, Any]) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 5. /user/activatevoucher
+# 5. /user/activate_voucher
 async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
     '''
     Функция активации ваучера и обновления срока подписки пользователя.
@@ -180,6 +180,8 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
     old_voucher = int(data.get("subscription"))
     lang = str(data.get("lang"))
 
+    print("Api catch:", data)
+
     if not tgid or not voucher_code:
         logging.error("TGID or voucher code is missing.")
         if lang == "en":
@@ -187,19 +189,23 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
         elif lang == "ru":
             return {"Success": False, "Reason": "TGID или код ваучера отсутствует."}
 
+    logging.info(f"Fetching voucher with code: {voucher_code}")
 
     query_voucher = '''
-    SELECT duration, is_used, expires_at FROM vouchers WHERE code = $1;
+    SELECT code, duration, is_used, expires_at 
+    FROM vouchers 
+    WHERE UPPER(code) = UPPER($1);
     '''
+
     try:
         voucher = await pg.fetch(query_voucher, voucher_code)
 
-        if not voucher:
+        if voucher.get("code") is None:
             logging.error(f"Voucher with code {voucher_code} not found.")
-        if lang == "en":
-            return {"Success": False, "Reason": "Voucher not found."}
-        elif lang == "ru":
-            return {"Success": False, "Reason": "Ваучер не найден."}
+            if lang == "en":
+                return {"Success": False, "Reason": "Voucher not found."}
+            elif lang == "ru":
+                return {"Success": False, "Reason": "Ваучер не найден."}
     
         if voucher["is_used"]:
             logging.error(f"Voucher {voucher_code} has already been used.")
@@ -227,7 +233,8 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
         WHERE tgid = $2
         RETURNING id;
         '''
-        result_sub = await pg.fetch(query_update_sub, new_sub_expiration, tgid)
+        result_value = (new_sub_expiration, tgid)
+        result_sub = await pg.fetch(query_update_sub, *result_value)
 
         if result_sub is None:
             logging.error(f"Failed to update subscription for TGID: {tgid}")
@@ -268,8 +275,8 @@ async def activate_voucher(data: Dict[str, Any]) -> Dict[str, Any]:
             return {"Success": False, "Reason": "Внутренняя ошибка сервера."}
 #--------------------------------------------------------------------------
 
-# 6. /user/getsubscription/{tgid}
-async def getsubscription(tgid: int) -> Dict[str, Any]:
+# 6. /user/get_subscription/{tgid}
+async def get_subscription(tgid: int) -> Dict[str, Any]:
     """
     Получение времени подписки по идентификатору Telegram пользователя.
     """
@@ -295,8 +302,8 @@ async def getsubscription(tgid: int) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 7. /user/setlanguage
-async def setlanguage(data: Dict[str, Any]) -> Dict[str, Any]:
+# 7. /user/set_language
+async def set_language(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Изменение языка бота для пользователя на Русский
     """
@@ -329,8 +336,8 @@ async def setlanguage(data: Dict[str, Any]) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 8. /user/checklanguage/{tgid}
-async def checklanguage(tgid: int) -> Dict[str, Any]:
+# 8. /user/check_language/{tgid}
+async def check_language(tgid: int) -> Dict[str, Any]:
     """
     """
 
@@ -356,8 +363,8 @@ async def checklanguage(tgid: int) -> Dict[str, Any]:
         return await handle_exception(ex)
 #--------------------------------------------------------------------------
 
-# 9. /user/configlimit/{tgid}
-async def configlimit(tgid: int) -> Dict[str, Any]:
+# 9. /user/config_limit/{tgid}
+async def config_limit(tgid: int) -> Dict[str, Any]:
     """
     """
 
@@ -366,7 +373,7 @@ async def configlimit(tgid: int) -> Dict[str, Any]:
         return {"Success": False, "Reason": "TGID is missing."}
     
     query = '''
-        SELECT configlimit
+        SELECT config_limit
         FROM users
         WHERE tgid = $1;
     '''
@@ -374,13 +381,109 @@ async def configlimit(tgid: int) -> Dict[str, Any]:
     try:
         r = await pg.fetch(query, tgid)  
         if not r:
-            return {"Success": False, "Reason": "Can't find configlimit"}
+            return {"Success": False, "Reason": "Can't find config_limit"}
         else:
-            configlimit = r['configlimit']
-            return {"Success": True, "configlimit": configlimit}
+            config_limit = r['config_limit']
+            return {"Success": True, "config_limit": config_limit}
         
     except Exception as ex:
         return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 10. /user/reduceconfig_limit/{tgid}
+async def reduce_config_limit(tgid: int) -> Dict[str, Any]:
+    """
+    """
+
+    if not tgid:
+        logging.error("TGID is missing.")
+        return {"Success": False, "Reason": "TGID is missing."}
+    
+    query = '''
+        SELECT config_limit
+        FROM users
+        WHERE tgid = $1;
+    '''
+
+    try:
+        r = await pg.fetch(query, tgid)  
+        if not r:
+            return {"Success": False, "Reason": "Can't find config_limit"}
+        else:
+            config_limit = r['config_limit']
+
+            if config_limit > 0:
+                
+                reduce_limit = config_limit - 1
+                values = (reduce_limit, tgid)
+                
+                reduce_query = '''
+                    UPDATE users
+                    SET config_limit = $1
+                    WHERE tgid = $2;
+                '''
+                request = await pg.execute(reduce_query, values)
+                if request is None:
+                    return {"Success" : True}
+                else:
+                    return {"Success" : False}
+        
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+# 10. /user/reduce_config_limit/{tgid}
+async def restore_config_limit(hostname: str) -> Dict[str, Any]:
+    """
+    Восстанавливает лимит конфигурации на основании хоста
+    """
+    if not hostname:
+        logging.error("hostname is missing.")
+        return {"Success": False, "Reason": "hostname is missing."}
+    
+    query_hostname = '''
+        SELECT tg_user, count(tg_user)
+        FROM configs
+        WHERE hostname = $1
+        GROUP BY tg_user;
+    '''
+
+    try:
+        r = await pg.fetch(query_hostname, hostname)  
+
+        if not r:
+            return {"Success": False, "Reason": "Can't find hostname"}
+        else:
+            fetch_count = r.get("count")
+            tg_user = r.get("tg_user")
+
+            query_config_limit = '''
+                SELECT config_limit 
+                FROM users
+                WHERE tg_user = $1;
+            '''
+            
+            config_limit = await pg.fetch(query_config_limit, tg_user)
+
+            if config_limit is None:
+                return {"Success": False, "Reason": "Can't find user config limit"}
+            
+            # Рассчитываем новый лимит конфигурации
+            new_limit = config_limit.get("config_limit") + fetch_count
+            
+            query_update = '''
+                UPDATE users
+                SET config_limit = $1
+                WHERE tg_user = $2;
+            '''
+
+            values_update = (new_limit, tg_user)
+            await pg.execute(query_update, values_update)
+            return {"Success": True, "Reason": "Config limit updated successfully"}
+
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+        return {"Success": False, "Reason": "An internal error occurred"}
 #--------------------------------------------------------------------------
 #|=============================[End User panel]=============================|
 
@@ -684,6 +787,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
     hostname: str = data.get("hostname")
     tgid:     int = data.get("tgid")
     tg_user:   str = data.get("tg_nick")
+    config_ttl: int = data.get("config_ttl")
 
     if not all([username, password, web_path, hostname, tgid, tg_user]):
         logger.error("Missing required fields in data: %s", data)
@@ -709,7 +813,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         auth_headers = await xui_func.login(username, password, web_path)
 
         # Создание конфига
-        inbound, config, qr_data = await xui_func.add_inbound(auth_headers, web_path, hostname)
+        inbound, config, qr_data = await xui_func.add_inbound(auth_headers, web_path, hostname, config_ttl)
 
         # Запись в БД
         query = """

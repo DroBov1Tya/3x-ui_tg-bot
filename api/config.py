@@ -18,6 +18,12 @@ apikey: str = os.getenv('FASTAPI_KEY')
 pg_conn: str = os.getenv('POSTGRES_DSN')
 red_conn: str = os.getenv('REDIS_DSN')
 red_ttl: int = os.getenv('REDIS_EXPIRE')
+cryptobot_debug: str = os.getenv("CRYPTOBOT_DEBUG")
+
+if cryptobot_debug == "TRUE":
+    cryptobot_tokeng: str = os.getenv("CRYPTOBOT_TOKEN_DEBUG")
+else:
+    cryptobot_token: str = os.getenv("CRYPTOBOT_TOKEN")
 
 # VARS # 
 SECRET_VALUE: str = apikey       # CHANGE ME ON PROD !!!
@@ -32,6 +38,7 @@ class Tags(Enum):
     admin = "Admin"
     x_ui = "X-ui"
     servers = "Servers"
+    cryptobot = "CryptoBot"
 
 
 def auth401():

@@ -228,7 +228,7 @@ async def add_inbound_data(inbound_data: dict, webpath: str) -> None:
 #--------------------------------------------------------------------------
 
 #|=============================[Add Inbound Init]=============================|
-async def add_inbound(auth_headers: Dict[str, str], webpath: str, hostname: str) -> Tuple[Dict[str, Any], Any]:
+async def add_inbound(auth_headers: Dict[str, str], webpath: str, hostname: str, config_ttl: int) -> Tuple[Dict[str, Any], Any]:
     """
     Добавляет новый inbound сервер и возвращает данные о нем.
 
@@ -271,7 +271,7 @@ async def add_inbound(auth_headers: Dict[str, str], webpath: str, hostname: str)
         "email": email,
         "limit_ip": 0,
         "total_gb": 0,
-        "client_expiry_time": 0,
+        "client_expiry_time": config_ttl,
         "tg_id": "",
         "sub_id": await generator_func.string_generator(type="letdiggest", length=17),
         "reset": 0,

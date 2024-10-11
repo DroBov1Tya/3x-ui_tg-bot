@@ -71,25 +71,26 @@ async def learn_more(tgid: int):
 
 async def create_config(message, hostname):
     tgid = message.chat.id
-    config_limit = await api.check_config_limit(tgid)
+    config_limit = (await api.check_config_limit(tgid)).get("config_limit")
     lang = (await api.check_language(message.chat.id)).get("lang")
+    config_ttl = (await api.getsubsctiption(tgid)).get("subscription") * 1000
     try:
         if config_limit > 0:
+            data, qr_file = await api.create_config(message, hostname, config_ttl)
+
             if lang == "en":
-                data, qr_file = await api.create_config(message, hostname)
                 if not data:
                     text = "Your subscription has expired, would you like to renew it?"
-                    markup = BTN.pay_subscription(tgid)
+                    markup = BTN.pay_with_crypto(tgid)
                     markup_delete = BTN.delete_message(tgid)
                     return text, markup, markup_delete, None, lang
                 else:
                     config = data["config"]
-
+                    await api.reduce_config_limit(tgid)
                     text, markup, markup_delete = f"{config}", BTN.menu(tgid), BTN.delete_message(tgid)
                     return text, markup, markup_delete, qr_file, lang
                 
             elif lang == "ru":
-                data, qr_file = await api.create_config(message, hostname)
                 if not data:
                     text = "Ваша подписка закончилась, хотите её обновить?"
                     markup = BTN.pay_with_crypto(tgid)
@@ -128,14 +129,23 @@ async def create_config(message, hostname):
 
 async def config_menu(tgid: int):
     servers = await api.servers_count()
-    config_limit = (await api.check_config_limit(tgid)).get("configlimit")
+    config_limit = (await api.check_config_limit(tgid)).get("config_limit")
     lang = (await api.check_language(tgid)).get("lang")
-    if lang == "en":
-        text, markup = await lang_text.config_menu_en(config_limit), BTN.config_menu(tgid, servers)
-        return text, markup
-    elif lang == "ru":
-        text, markup = await lang_text.config_menu_ru(config_limit), BTN.config_menu_ru(tgid, servers)
-        return text, markup
+
+    if servers is None:
+        if lang == "en":
+            text, markup = lang_text.config_menu_without_en, BTN.config_menu(tgid, servers)
+            return text, markup
+        elif lang == "ru":
+            text, markup = lang_text.config_menu_without_ru, BTN.config_menu_ru(tgid, servers)
+            return text, markup
+    else:
+        if lang == "en":
+            text, markup = await lang_text.config_menu_en(config_limit), BTN.config_menu(tgid, servers)
+            return text, markup
+        elif lang == "ru":
+            text, markup = await lang_text.config_menu_ru(config_limit), BTN.config_menu_ru(tgid, servers)
+            return text, markup
 #--------------------------------------------------------------------------
 
 async def account_menu(tgid: int):
@@ -177,7 +187,7 @@ async def pay_with_crypto(tgid: int):
         text, markup = lang_text.pay_subscription_en, BTN.pay_with_crypto(tgid)
         return text, markup
     elif lang == "ru":
-        text, markup = lang_text.pay_subscription_ru, BTN.pay_with_crypto (tgid)
+        text, markup = lang_text.pay_subscription_ru, BTN.pay_with_crypto_ru (tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -194,7 +204,7 @@ async def pay_with_usdt(tgid: int):
     
     elif lang == "ru":
         text = await lang_text.usdt_sub_ru(one_month_usd, six_month_usd, twelve_month_usd)
-        markup = BTN.pay_with_usdt(tgid)
+        markup = BTN.pay_with_usdt_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -210,7 +220,7 @@ async def pay_with_btc(tgid: int):
     
     elif lang == "ru":
         text = await lang_text.bct_sub_ru(six_month_crypto, twelve_month_crypto)
-        markup = BTN.pay_with_btc(tgid)
+        markup = BTN.pay_with_btc_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -226,7 +236,7 @@ async def pay_with_ltc(tgid: int):
     
     elif lang == "ru":
         text = await lang_text.ltc_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto)
-        markup = BTN.pay_with_ltc(tgid)
+        markup = BTN.pay_with_ltc_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -242,7 +252,7 @@ async def pay_with_ton(tgid: int):
     
     elif lang == "ru":
         text = await lang_text.ton_sub_ru(one_month_crypto, six_month_crypto, twelve_month_crypto)
-        markup = BTN.pay_with_ton(tgid)
+        markup = BTN.pay_with_ton_ru(tgid)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -324,6 +334,9 @@ async def format_subscription_status(subscription_end: int, current_time: int) -
     Форматирует статус подписки с учетом оставшегося времени.
     """
     diff = subscription_end - current_time
+
+    if diff is None:
+        diff = 0
 
     if diff <= 0:
         return "❌ Your subscription has ended."

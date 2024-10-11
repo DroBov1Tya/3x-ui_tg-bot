@@ -31,45 +31,59 @@ async def user_info(tgid: int):
     return r
 #--------------------------------------------------------------------------
 
-# 4. /user/checkvoucher
-@app.post("/user/checkvoucher", tags=[Tags.user], summary="Voucher check")
-async def checkvoucher(data = Body(example=ex.user_create)):
-    r = await api.checkvoucher(data)
+# 4. /user/check_voucher
+@app.post("/user/check_voucher", tags=[Tags.user], summary="Voucher check")
+async def check_voucher(data = Body(example=ex.user_create)):
+    r = await api.check_voucher(data)
     return r
 #--------------------------------------------------------------------------
 
-# 5. /user/activatevoucher
-@app.post("/user/activatevoucher", tags=[Tags.user], summary="Voucher activate")
+# 5. /user/activate_voucher
+@app.post("/user/activate_voucher", tags=[Tags.user], summary="Voucher activate")
 async def activate_voucher(data = Body(example=ex.user_create)):
     r = await api.activate_voucher(data)
     return r
 #--------------------------------------------------------------------------
 
-# 6. /user/getsubscription/{tgid}
-@app.get("/user/getsubscription/{tgid}", tags=[Tags.user], summary="Get subscription")
-async def getsubscription(tgid: int):
-    r = await api.getsubscription(tgid)
+# 6. /user/get_subscription/{tgid}
+@app.get("/user/get_subscription/{tgid}", tags=[Tags.user], summary="Get subscription")
+async def get_subscription(tgid: int):
+    r = await api.get_subscription(tgid)
     return r
 #--------------------------------------------------------------------------
 
-# 7. /user/setlanguage
-@app.post("/user/setlanguage", tags=[Tags.user], summary="Set language")
-async def setlanguage(json = Body(example=ex.set_language)):
-    r = await api.setlanguage(json)
+# 7. /user/set_language
+@app.post("/user/set_language", tags=[Tags.user], summary="Set language")
+async def set_language(json = Body(example=ex.set_language)):
+    r = await api.set_language(json)
     return r
 #--------------------------------------------------------------------------
 
-# 8. /user/checklanguage/{tgid}
-@app.get("/user/checklanguage/{tgid}", tags=[Tags.user], summary="Check language")
-async def checklanguage(tgid: int):
-    r = await api.checklanguage(tgid)
+# 8. /user/check_language/{tgid}
+@app.get("/user/check_language/{tgid}", tags=[Tags.user], summary="Check language")
+async def check_language(tgid: int):
+    r = await api.check_language(tgid)
     return r
 #--------------------------------------------------------------------------
 
-# 9. /user/configlimit/{tgid}
-@app.get("/user/configlimit/{tgid}", tags=[Tags.user], summary="Check config limit")
-async def configlimit(tgid: int):
-    r = await api.configlimit(tgid)
+# 9. /user/config_limit/{tgid}
+@app.get("/user/config_limit/{tgid}", tags=[Tags.user], summary="Check config limit")
+async def config_limit(tgid: int):
+    r = await api.config_limit(tgid)
+    return r
+#--------------------------------------------------------------------------
+
+# 10. /user/reduce_config_limit/{tgid}
+@app.get("/user/reduce_config_limit/{tgid}", tags=[Tags.user], summary="reduce config limit")
+async def reduce_config_limit(tgid: int):
+    r = await api.reduce_config_limit(tgid)
+    return r
+#--------------------------------------------------------------------------
+
+# 11. /user/restore_config_limit/{tgid}
+@app.get("/user/restore_config_limit/{hostname}", tags=[Tags.user], summary="restore config limit")
+async def restore_config_limit(hostname: str):
+    r = await api.restore_config_limit(hostname)
     return r
 #--------------------------------------------------------------------------
 #|=============================[End User routes]=============================|
@@ -104,21 +118,21 @@ async def admin_fetchadmins():
 #--------------------------------------------------------------------------
 
 # 5. /admin/voucherone
-@app.get("/admin/voucherone", tags=[Tags.admin], summary="Create 1 month voucher")
+@app.get("/admin/voucher_one", tags=[Tags.admin], summary="Create 1 month voucher")
 async def admin_create_voucher_one():
     r = await api.admin_create_voucher_one()
     return r
 #--------------------------------------------------------------------------
 
 # 6. /admin/vouchersix
-@app.get("/admin/vouchersix", tags=[Tags.admin], summary="Create 6 month voucher")
+@app.get("/admin/voucher_six", tags=[Tags.admin], summary="Create 6 month voucher")
 async def admin_create_voucher_six():
     r = await api.admin_create_voucher_six()
     return r
 #--------------------------------------------------------------------------
 
 # 7. /admin/voucheryear
-@app.get("/admin/voucheryear", tags=[Tags.admin], summary="Create year voucher")
+@app.get("/admin/voucher_year", tags=[Tags.admin], summary="Create year voucher")
 async def admin_create_voucher_year():
     r = await api.admin_create_voucher_year()
     return r
@@ -190,6 +204,16 @@ async def server_down(dict = Body(example=ex.server_down)):
     r = await api.server_down(dict)
     return r
 #--------------------------------------------------------------------------
+
+#|=============================[CryptoBot routes]=============================|
+# 1. /cryptobot/getMe
+@app.get("/cryptobot/getMe", tags=[Tags.cryptobot], summary="test token")
+async def getMe():
+    r = await api.getMe()
+    return r
+#--------------------------------------------------------------------------
+
+
 
 #|=============================[redis routes]=============================|
 # 1. /redis_get_all
