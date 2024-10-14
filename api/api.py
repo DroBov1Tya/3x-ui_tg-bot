@@ -487,6 +487,9 @@ async def restore_config_limit(hostname: str) -> Dict[str, Any]:
         logging.error(f"An error occurred: {str(e)}")
         return {"Success": False, "Reason": "An internal error occurred"}
 #--------------------------------------------------------------------------
+
+
+#--------------------------------------------------------------------------
 #|=============================[End User panel]=============================|
 
 #|=============================[Admin panel]=============================|
@@ -1059,6 +1062,171 @@ async def create_invoice(data: Dict[str, Any]) -> Dict[str, Any]:
         except Exception as ex:
             return await handle_exception(ex)
 #--------------------------------------------------------------------------
-async def check_invoice() -> Dict[str, Any]:
-        
-        pass
+async def get_invoices() -> Dict[str, Any]:
+        """
+        """
+
+        query = '''
+            SELECT invoice_id, tgid, invoice_description
+            FROM invoices
+            WHERE invoice_status = 'active';
+        '''
+
+        paid = []
+        expired = []
+
+        try:
+            r = await pg.fetchall(query)
+            
+            for record in r:
+                invoice_id = record['invoice_id']
+                
+                invoices = await crypto.getInvoices(invoice_id)
+                invoice_status = invoices["result"]["items"][0]["status"]
+
+                if invoice_status == "expired":
+                    expired.append(invoice_id)
+
+                elif invoice_status == "paid":
+                    paid.append(invoice_id)
+            return {"paid": paid, "expired": expired}
+        except Exception as ex:
+            return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+async def paid_invoices(invoice_id: str) -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
+        UPDATE invoices
+        SET invoice_status = 'paid'
+        WHERE invoice_id = $1
+    '''
+
+    try:
+        r = await pg.execute(query, (invoice_id,))
+        if r is None:
+            return {"Success": True}
+        else:
+            return {"Success": False}
+            
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+async def expired_invoices(invoice_id: str) -> Dict[str, Any]:
+    """
+    """
+
+    query = '''
+        UPDATE invoices
+        SET invoice_status = 'expired'
+        WHERE invoice_id = $1
+    '''
+
+    try:
+        r = await pg.execute(query, (invoice_id,))
+        if r is None:
+            return {"Success": True}
+        else:
+            return {"Success": False}
+            
+    except Exception as ex:
+        return await handle_exception(ex)
+#--------------------------------------------------------------------------
+
+async def update_subscription(invoice_id) -> str:
+    """
+    """
+
+    invoice_query = '''
+        SELECT invoice_description, tgid
+        FROM invoices
+        WHERE invoice_id = $1
+    '''
+
+    try:
+        r = await pg.fetch(invoice_query, invoice_id)
+        if r:
+            description = r.get("invoice_description")
+            tgid = r.get("tgid")
+            
+            update_query = '''
+                UPDATE users
+                SET sub = $1, config_limit = 15
+                WHERE tgid = $2;
+            '''
+
+            current_time = int(time.time())
+
+            exist_sub_query = '''
+                SELECT sub
+                FROM users
+                WHERE tgid = $1
+            '''
+
+            
+            try:
+                exist_sub = (await pg.fetch(exist_sub_query, tgid)).get("sub")
+            except Exception as ex:
+                    return await handle_exception(ex)
+
+            if description == "⏳ 1 Month subscription" or description =="⏳ 1 Месяц подписки":
+
+                if exist_sub == 0 or exist_sub < current_time:
+                    subscription_time = current_time + (30 * 24 * 60 * 60)
+                else: 
+                    subscription_time =  exist_sub + (30 * 24 * 60 * 60)
+
+                values = (subscription_time, tgid)
+                try:
+                    r = await pg.execute(update_query, values)
+                    if r is None:
+                        return "Success"
+                    else:
+                        return "False"
+                
+                except Exception as ex:
+                    return await handle_exception(ex)
+            
+            elif description == "🕰️ 6 Months subscription" or description == "🕰️ 6 Месяцев подписки":
+                if exist_sub == 0 or exist_sub < current_time:
+                    subscription_time = current_time + (180 * 24 * 60 * 60)
+                else: 
+                    subscription_time =  exist_sub + (180 * 24 * 60 * 60)
+
+                values = (subscription_time, tgid)
+
+                try:
+                    r = await pg.execute(update_query, values)
+                    if r is None:
+                        return "Success"
+                    else:
+                        return "False"
+                
+                except Exception as ex:
+                    return await handle_exception(ex)
+                
+            elif description == "🌍 1 Year subscription" or description == "🌍 1 Год подписки":
+                if exist_sub == 0 or exist_sub < current_time:
+                    subscription_time = current_time + (365 * 24 * 60 * 60)
+                else: 
+                    subscription_time =  exist_sub + (365 * 24 * 60 * 60)
+
+                values = (subscription_time, tgid)
+
+                try:
+                    r = await pg.execute(update_query, values)
+                    if r is None:
+                        return "Success"
+                    else:
+                        return "False"
+                
+                except Exception as ex:
+                    return await handle_exception(ex)
+            else:
+                return {"Success": False, "reason": "Description is not normal"}
+
+    except Exception as ex:
+        return await handle_exception(ex)

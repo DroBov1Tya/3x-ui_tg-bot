@@ -98,18 +98,18 @@ async def create_config(message, hostname):
                     return text, markup, markup_delete, None, lang
                 else:
                     config = data["config"]
-
+                    await api.reduce_config_limit(tgid)
                     text, markup, markup_delete = f"{config}", BTN.menu_ru(tgid), BTN.delete_message_ru(tgid)
                     return text, markup, markup_delete, qr_file, lang
         else:
             if lang == "en":
                 text = "You have reached the configuration limit."
-                markup = BTN.pay_subscription(tgid)
+                markup = BTN.menu(tgid)
                 markup_delete = BTN.delete_message(tgid)
                 return text, markup, markup_delete, None, lang
             elif lang == "ru":
                 text = "Вы исчерпали лимит конфигов."
-                markup = BTN.pay_with_crypto(tgid)
+                markup = BTN.menu_ru(tgid)
                 markup_delete = BTN.delete_message_ru(tgid)
                 return text, markup, markup_delete, None, lang
     except Exception as e:

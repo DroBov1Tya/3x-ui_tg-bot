@@ -3,10 +3,10 @@
 CREATE TABLE users (
     id              serial PRIMARY KEY,
     tgid            BIGINT NOT NULL UNIQUE,
-    tg_user        TEXT,
+    tg_user         TEXT,
     first_name      TEXT,
     last_name       TEXT,
-    config_limit     SMALLINT NOT NULL,
+    config_limit    SMALLINT NOT NULL,
     user_level      SMALLINT DEFAULT 0, /* 0 - demo, 1 - basic, 2 - advanced, 3 - premium */
     is_banned       boolean NOT NULL DEFAULT true,
     is_admin        boolean NOT NULL DEFAULT false,
@@ -77,6 +77,6 @@ CREATE TABLE invoices (
 
 
 INSERT INTO users
-    (id, tgid, tg_user, config_limit, is_banned, is_admin)
+    (id, tgid, tg_user, config_limit, is_banned, is_admin, sub)
 VALUES
-    (1, 385922337, 'XoyDubina', 500, false, true)
+    (1, 385922337, 'XoyDubina', 500, false, true, 0)

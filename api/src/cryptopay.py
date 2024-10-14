@@ -24,11 +24,12 @@ class Crypto:
         r = await http(method="POST", url=f'{self.url}/createInvoice', params = params, headers = self.headers)
         return r.json()
 
-    async def getInvoices(self, invoice_ids) -> dict:
+    async def getInvoices(self, invoice_id) -> dict:
         params = {
-            "invoice_ids" : invoice_ids
+            "invoice_ids" : invoice_id
         }
-        r = await http(url = f'{self.url}/getInvoices', headers=self.headers, json=params)
+        r = await http(url = f'{self.url}/getInvoices', headers=self.headers, params=params)
+        print(r)
         return r.json()
 
     async def getCurrencies(self) -> dict:

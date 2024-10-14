@@ -15,6 +15,8 @@ async def main():
             hostname = server.get("hostname")
             checker = func.PortChecker(hostname)
             await checker.check_ports()
+        invoices = await api.get_invoices()
+        await api.process_invoices(invoices)
 
 # Запуск программы
 if __name__ == "__main__":

@@ -86,6 +86,10 @@ async def restore_config_limit(hostname: str):
     r = await api.restore_config_limit(hostname)
     return r
 #--------------------------------------------------------------------------
+
+
+
+#--------------------------------------------------------------------------
 #|=============================[End User routes]=============================|
 
 #|=============================[Admin routes]=============================|
@@ -224,6 +228,34 @@ async def create_invoice(dict = Body(ex.create_invoice)):
 @app.post("/cryptobot/check_invoice", tags=[Tags.cryptobot], summary="test token")
 async def check_invoice():
     r = await api.check_invoice()
+    return r
+#--------------------------------------------------------------------------
+
+# 4. /cryptobot/get_invoices
+@app.get("/cryptobot/get_invoices", tags=[Tags.cryptobot], summary="get invoices")
+async def get_invoices():
+    r = await api.get_invoices()
+    return r
+#--------------------------------------------------------------------------
+
+# 4. /cryptobot/paid_invoices/{invoice_id}
+@app.get("/cryptobot/paid_invoices/{invoice_id}", tags=[Tags.cryptobot], summary="paid invoices")
+async def paid_invoices(invoice_id: int):
+    r = await api.paid_invoices(invoice_id)
+    return r
+#--------------------------------------------------------------------------
+
+# 4. /cryptobot/paid_invoices/{invoice_id}
+@app.get("/cryptobot/expired_invoices/{invoice_id}", tags=[Tags.cryptobot], summary="expired invoices")
+async def expired_invoices(invoice_id: int):
+    r = await api.expired_invoices(invoice_id)
+    return r
+#--------------------------------------------------------------------------
+
+# 4. /cryptobot/update_subscription
+@app.get("/cryptobot/update_subscription/{invoice_id}", tags=[Tags.cryptobot], summary="update subscription")
+async def update_subscription(invoice_id: int):
+    r = await api.update_subscription(invoice_id)
     return r
 
 

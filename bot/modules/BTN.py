@@ -357,7 +357,7 @@ def pay_subscription_ru(tgid):
 #--------------------------------------------------------------------------
 
 def cryptopay(tgid, link):
-    btn1 = InlineKeyboardButton(text='🪙 Оплатить', url = link)
+    btn1 = InlineKeyboardButton(text='💸 Оплатить', url = link)
     btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'pay_with_crypto {tgid}')
     buttons = [
         [btn1],
