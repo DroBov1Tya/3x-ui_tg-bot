@@ -224,14 +224,7 @@ async def create_invoice(dict = Body(ex.create_invoice)):
     return r
 #--------------------------------------------------------------------------
 
-# 3. /cryptobot/check_invoice
-@app.post("/cryptobot/check_invoice", tags=[Tags.cryptobot], summary="test token")
-async def check_invoice():
-    r = await api.check_invoice()
-    return r
-#--------------------------------------------------------------------------
-
-# 4. /cryptobot/get_invoices
+# 3. /cryptobot/get_invoices
 @app.get("/cryptobot/get_invoices", tags=[Tags.cryptobot], summary="get invoices")
 async def get_invoices():
     r = await api.get_invoices()
@@ -245,17 +238,24 @@ async def paid_invoices(invoice_id: int):
     return r
 #--------------------------------------------------------------------------
 
-# 4. /cryptobot/paid_invoices/{invoice_id}
+# 5. /cryptobot/paid_invoices/{invoice_id}
 @app.get("/cryptobot/expired_invoices/{invoice_id}", tags=[Tags.cryptobot], summary="expired invoices")
 async def expired_invoices(invoice_id: int):
     r = await api.expired_invoices(invoice_id)
     return r
 #--------------------------------------------------------------------------
 
-# 4. /cryptobot/update_subscription
+# 6. /cryptobot/update_subscription
 @app.get("/cryptobot/update_subscription/{invoice_id}", tags=[Tags.cryptobot], summary="update subscription")
 async def update_subscription(invoice_id: int):
     r = await api.update_subscription(invoice_id)
+    return r
+#--------------------------------------------------------------------------
+
+# 7. /cryptobot/get_crypto_currencies
+@app.get("/cryptobot/get_crypto_currencies", tags=[Tags.cryptobot], summary="get crypto currencies")
+async def get_crypto_currencies():
+    r = await api.get_crypto_currencies()
     return r
 
 

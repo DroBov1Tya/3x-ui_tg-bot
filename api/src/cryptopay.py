@@ -33,7 +33,7 @@ class Crypto:
         return r.json()
 
     async def getCurrencies(self) -> dict:
-        r = await http(f'{self.url}/getCurrencies', headers=self.headers).json() 
-        return r
+        r = await http(f'{self.url}/getCurrencies', headers=self.headers)
+        return r.json()
     
     

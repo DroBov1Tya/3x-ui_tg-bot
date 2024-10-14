@@ -355,13 +355,34 @@ def pay_subscription_ru(tgid):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------
-
-def cryptopay(tgid, link):
-    btn1 = InlineKeyboardButton(text='💸 Оплатить', url = link)
-    btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'pay_with_crypto {tgid}')
+# [💸 Pay]
+# [🔙 Back]
+# [👤 Account] [🏠 Menu]
+def cryptopay_en(tgid, link):
+    btn1 = InlineKeyboardButton(text='💸 Pay', url = link)
+    btn2 = InlineKeyboardButton(text='🔙 Back', callback_data=f'menu {tgid}')
+    btn3 = InlineKeyboardButton(text='👤 Account', callback_data=f'account_menu {tgid}')
+    btn4 = InlineKeyboardButton(text='🏠 Menu', callback_data=f'pay_with_crypto {tgid}')
     buttons = [
         [btn1],
-        [btn2]
+        [btn2],
+        [btn3, btn4]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+#--------------------------------------------------------------------------
+
+# [💸 Оплатить]
+# [🔙 Назад]
+# [👤 Аккаунт] [🏠 Меню]
+def cryptopay_ru(tgid, link):
+    btn1 = InlineKeyboardButton(text='💸 Оплатить', url = link)
+    btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'menu {tgid}')
+    btn3 = InlineKeyboardButton(text='👤 Аккаунт', callback_data=f'account_menu {tgid}')
+    btn4 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'pay_with_crypto {tgid}')
+    buttons = [
+        [btn1],
+        [btn2],
+        [btn3, btn4]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 #--------------------------------------------------------------------------

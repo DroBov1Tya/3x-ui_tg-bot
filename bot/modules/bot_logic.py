@@ -265,14 +265,14 @@ async def create_invoice_usdt_one(tgid):
         description = "⏳ 1 Month subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "⏳ 1 Месяц подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -285,14 +285,14 @@ async def create_invoice_usdt_six(tgid):
         description = "🕰️ 6 Months subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🕰️ 6 Месяцев подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -305,14 +305,14 @@ async def create_invoice_usdt_year(tgid):
         description = "🌍 1 Year subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🌍 1 Год подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -326,14 +326,14 @@ async def create_invoice_btc_six(tgid):
         description = "🕰️ 6 Months subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🕰️ 6 Месяцев подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -347,14 +347,14 @@ async def create_invoice_btc_year(tgid):
         description = "🌍 1 Year subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🌍 1 Год подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -368,14 +368,14 @@ async def create_invoice_ltc_month(tgid):
         description = "⏳ 1 Month subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "⏳ 1 Месяц подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -389,14 +389,14 @@ async def create_invoice_ltc_six(tgid):
         description = "🕰️ 6 Months subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "⏳ 1 Месяц подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -410,14 +410,14 @@ async def create_invoice_ltc_year(tgid):
         description = "🌍 1 Year subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🌍 1 Год подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -431,14 +431,14 @@ async def create_invoice_ton_month(tgid):
         description = "⏳ 1 Month subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "⏳ 1 Месяц подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -452,14 +452,14 @@ async def create_invoice_ton_six(tgid):
         description = "🕰️ 6 Months subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🕰️ 6 Месяцев подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
 
@@ -473,16 +473,17 @@ async def create_invoice_ton_year(tgid):
         description = "🌍 1 Year subscription"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_en, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_en, BTN.cryptopay_en(tgid, link)
         return text, markup
 
     elif lang == "ru":
         description = "🌍 1 Год подписки"
         r = await api.create_invoice(tgid, crypto_type, amount, description)
         link = r.get("invoice_link")
-        text, markup = lang_text.create_invoice_ru, BTN.cryptopay(tgid, link)
+        text, markup = lang_text.create_invoice_ru, BTN.cryptopay_ru(tgid, link)
         return text, markup
 #--------------------------------------------------------------------------
+
 #|=============================[admins panel]=============================|
 #Админка
 async def admins_cmd(message):

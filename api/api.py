@@ -822,16 +822,16 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
 
         # Запись в БД
         query = """
-            INSERT INTO configs (hostname, tg_user, inbound, users, config)
-            VALUES ($1, $2, $3, $4, $5);
+            INSERT INTO configs (hostname, tg_user, inbound, users, config, ttl)
+            VALUES ($1, $2, $3, $4, $5, $6);
         """
 
         query_history = """
-            INSERT INTO configs_history (hostname, tg_user, inbound, users, config)
-            VALUES ($1, $2, $3, $4, $5);
+            INSERT INTO configs_history (hostname, tg_user, inbound, users, config, ttl)
+            VALUES ($1, $2, $3, $4, $5, $6);
         """
 
-        values = (hostname, tg_user, inbound["remark"], inbound["email"], config)
+        values = (hostname, tg_user, inbound["remark"], inbound["email"], config, config_ttl)
 
         result = await pg.execute(query, values)
         # Проверка результата и перехват ошибок
@@ -928,6 +928,23 @@ async def remove_configs(hostname: str) -> Dict[str, Union[bool, str, Any]]:
 
 #|===============================[Servers panel]===============================|
 # 1. /servers/add_server
+async def sync_server_sequence():
+    """
+    Синхронизирует последовательность для таблицы servers.
+    """
+
+    query = '''
+    SELECT setval(
+        'servers_id_seq', 
+        (SELECT COALESCE(MAX(id), 1) FROM servers)
+    );
+    '''
+
+    try:
+        await pg.execute(query)
+        logger.info("Sequence for 'servers' table synchronized successfully.")
+    except Exception as ex:
+        return await handle_exception(ex)
 async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Добавляет сервер в БД
@@ -949,6 +966,8 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
         return {"Success": False, "Reason": "Missing hostname, port, username or passwd"}
 
     try:
+        await sync_server_sequence()
+
         # Проверка, существует ли сервер с таким hostname в БД
         query_check = "SELECT hostname FROM servers WHERE hostname = $1"
         result_check = await pg.fetch(query_check, hostname)
@@ -963,7 +982,7 @@ async def add_server(data: Dict[str, Any]) -> Dict[str, Any]:
             VALUES ($1, $2, $3, $4)
         """
         values_insert = (hostname, port, username, passwd)
-        result_insert = await pg.execute(query_insert, (*values_insert,))
+        result_insert = await pg.execute(query_insert, values_insert)
 
         if result_insert is None:
             logger.info("Server %s successfully inserted into the database", hostname)
@@ -1230,3 +1249,10 @@ async def update_subscription(invoice_id) -> str:
 
     except Exception as ex:
         return await handle_exception(ex)
+
+async def get_crypto_currencies():
+    r = await crypto.getCurrencies()
+    if r:
+        return {"Success": True, "result": r}
+    else:
+        return None

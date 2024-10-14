@@ -75,8 +75,3 @@ CREATE TABLE invoices (
     expiration_date         TEXT
 );
 
-
-INSERT INTO users
-    (id, tgid, tg_user, config_limit, is_banned, is_admin, sub)
-VALUES
-    (1, 385922337, 'XoyDubina', 500, false, true, 0)
