@@ -360,9 +360,9 @@ def pay_subscription_ru(tgid):
 # [👤 Account] [🏠 Menu]
 def cryptopay_en(tgid, link):
     btn1 = InlineKeyboardButton(text='💸 Pay', url = link)
-    btn2 = InlineKeyboardButton(text='🔙 Back', callback_data=f'menu {tgid}')
+    btn2 = InlineKeyboardButton(text='🔙 Back', callback_data=f'pay_with_crypto {tgid}')
     btn3 = InlineKeyboardButton(text='👤 Account', callback_data=f'account_menu {tgid}')
-    btn4 = InlineKeyboardButton(text='🏠 Menu', callback_data=f'pay_with_crypto {tgid}')
+    btn4 = InlineKeyboardButton(text='🏠 Menu', callback_data=f'menu {tgid}')
     buttons = [
         [btn1],
         [btn2],
@@ -376,9 +376,9 @@ def cryptopay_en(tgid, link):
 # [👤 Аккаунт] [🏠 Меню]
 def cryptopay_ru(tgid, link):
     btn1 = InlineKeyboardButton(text='💸 Оплатить', url = link)
-    btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'menu {tgid}')
+    btn2 = InlineKeyboardButton(text='🔙 Назад', callback_data=f'pay_with_crypto {tgid}')
     btn3 = InlineKeyboardButton(text='👤 Аккаунт', callback_data=f'account_menu {tgid}')
-    btn4 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'pay_with_crypto {tgid}')
+    btn4 = InlineKeyboardButton(text='🏠 Меню', callback_data=f'menu {tgid}')
     buttons = [
         [btn1],
         [btn2],

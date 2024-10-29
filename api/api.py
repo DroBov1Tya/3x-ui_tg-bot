@@ -727,7 +727,7 @@ async def init_server(data: Dict[str, Any]) -> Dict[str, Union[bool, str, Any]]:
             geolocation, 
             ssh_result["username"], 
             ssh_result["password"], 
-            f"http://{hostname}:2053/{ssh_result['webpath']}", 
+            f"http://{hostname}:2053/{ssh_result['webpath']}", #добавить здесь возвращение порта
             True, 
             hostname
         )
@@ -790,6 +790,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
     password: str = data.get("web_pass")
     web_path: str = data.get("web_path")
     hostname: str = data.get("hostname")
+    country: str = data.get("country")
     tgid:     int = data.get("tgid")
     tg_user:   str = data.get("tg_nick")
     config_ttl: int = data.get("config_ttl")
@@ -798,6 +799,8 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         logger.error("Missing required fields in data: %s", data)
         return {"Success": False, "Reason": "Missing required fields"}
     
+    if not tg_user:
+        tg_user = tgid
     
     try:
         # Шаг 1: Получаем значение подписки из БД
@@ -818,7 +821,7 @@ async def inbound_creation(data: Dict[str, Any]) -> Dict[str, Union[bool, str, A
         auth_headers = await xui_func.login(username, password, web_path)
 
         # Создание конфига
-        inbound, config, qr_data = await xui_func.add_inbound(auth_headers, web_path, hostname, config_ttl)
+        inbound, config, qr_data = await xui_func.add_inbound(auth_headers, web_path, hostname, country,  config_ttl)
 
         # Запись в БД
         query = """

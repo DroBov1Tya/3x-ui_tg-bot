@@ -56,12 +56,12 @@ async def admin_create_voucher_one():
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_six():
-    r = await http(f"{fastapi_url}/admin/voucher_one", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucher_six", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
 async def admin_create_voucher_year():
-    r = await http(f"{fastapi_url}/admin/voucher_one", method='GET', headers=headers)
+    r = await http(f"{fastapi_url}/admin/voucher_year", method='GET', headers=headers)
     return r
 #--------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ async def create_config(message, hostname, config_ttl):
     server_info = await http(method='GET', url = f"{fastapi_url}/xui/server_info/{encoded_hostname}", headers = headers)
     d = {
         "hostname" : server_info["result"]["hostname"],
+        "country"  : server_info["result"]["country"],
         "web_user" : server_info["result"]["web_user"],
         "web_pass" : server_info["result"]["web_pass"],
         "web_path" : server_info["result"]["web_path"],
