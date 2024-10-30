@@ -7,7 +7,6 @@ CREATE TABLE users (
     first_name      TEXT,
     last_name       TEXT,
     config_limit    SMALLINT NOT NULL,
-    user_level      SMALLINT DEFAULT 0, /* 0 - demo, 1 - basic, 2 - advanced, 3 - premium */
     is_banned       boolean NOT NULL DEFAULT true,
     is_admin        boolean NOT NULL DEFAULT false,
     sub             BIGINT, /* Unix time для окончания подписки */
